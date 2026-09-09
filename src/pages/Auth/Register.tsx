@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../../firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -28,9 +28,24 @@ export default function Register() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      let baseSlug = fullName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      if (!baseSlug) baseSlug = "user";
+      
+      let finalSlug = baseSlug;
+      
+      // Check for uniqueness
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", finalSlug));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        finalSlug = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
+      }
+
       // Create user document in Firestore
       await setDoc(doc(db, "users", user.uid), {
         fullName,
+        username: finalSlug,
         email,
         role: "student",
         createdAt: new Date().toISOString(),

@@ -39,6 +39,7 @@ const wrapText = (context: CanvasRenderingContext2D, text: string, x: number, y:
 export default function PublicSignOutPage() {
   const { slug } = useParams<{ slug: string }>();
   const [recipientName, setRecipientName] = useState("");
+  const [actualRecipientId, setActualRecipientId] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -66,15 +67,34 @@ export default function PublicSignOutPage() {
     const fetchPageData = async () => {
       if (!slug) return;
       try {
-        const userDoc = await getDoc(doc(db, "users", slug));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setRecipientName(data.fullName);
-          if (data.accountNumber && data.bankName && data.accountName) {
+        let userDocData = null;
+        let foundRecipientId = slug;
+
+        // Try to find user by custom username first
+        const usersRef = collection(db, "users");
+        const userQ = query(usersRef, where("username", "==", slug));
+        const userSnapshot = await getDocs(userQ);
+
+        if (!userSnapshot.empty) {
+          userDocData = userSnapshot.docs[0].data();
+          foundRecipientId = userSnapshot.docs[0].id;
+        } else {
+          // Fallback to searching by document ID (for older links without usernames)
+          const userDocRef = await getDoc(doc(db, "users", slug));
+          if (userDocRef.exists()) {
+            userDocData = userDocRef.data();
+            foundRecipientId = userDocRef.id;
+          }
+        }
+
+        if (userDocData) {
+          setRecipientName(userDocData.fullName);
+          setActualRecipientId(foundRecipientId);
+          if (userDocData.accountNumber && userDocData.bankName && userDocData.accountName) {
             setGiftDetails({
-              bankName: data.bankName,
-              accountName: data.accountName,
-              accountNumber: data.accountNumber
+              bankName: userDocData.bankName,
+              accountName: userDocData.accountName,
+              accountNumber: userDocData.accountNumber
             });
           }
         } else {
@@ -83,7 +103,7 @@ export default function PublicSignOutPage() {
         }
 
         const messagesRef = collection(db, "messages");
-        const q = query(messagesRef, where("recipientId", "==", slug));
+        const q = query(messagesRef, where("recipientId", "==", foundRecipientId));
         const querySnapshot = await getDocs(q);
         
         const fetchedMessages: any[] = [];
@@ -174,7 +194,7 @@ export default function PublicSignOutPage() {
     setSubmitting(true);
     try {
       const newMessage = {
-        recipientId: slug,
+        recipientId: actualRecipientId,
         senderName: pendingSignature.senderName,
         content: pendingSignature.content,
         imageData: pendingSignature.imageData,

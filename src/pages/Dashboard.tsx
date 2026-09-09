@@ -19,6 +19,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -30,7 +31,7 @@ export default function Dashboard() {
   const [savingGiftDetails, setSavingGiftDetails] = useState(false);
   const [isEditingGift, setIsEditingGift] = useState(false);
 
-  const publicLink = `${window.location.origin}/${currentUser?.uid}`;
+  const publicLink = `${window.location.origin}/${username || currentUser?.uid}`;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -42,6 +43,7 @@ export default function Dashboard() {
         if (userDoc.exists()) {
           const data = userDoc.data();
           setFullName(data.fullName || "");
+          setUsername(data.username || currentUser.uid);
           setBankName(data.bankName || "");
           setAccountNumber(data.accountNumber || "");
           setAccountName(data.accountName || "");
@@ -282,7 +284,7 @@ export default function Dashboard() {
                 </button>
                 
                 <Link
-                  to={`/${currentUser?.uid}`}
+                  to={`/${username || currentUser?.uid}`}
                   target="_blank"
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
                 >
