@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Canvas, createPortal } from '@react-three/fiber';
-import { useGLTF, OrbitControls, Environment, ContactShadows, Center, useTexture, Html, Decal, useProgress } from '@react-three/drei';
+import { useGLTF, OrbitControls, Environment, ContactShadows, useTexture, Html, useProgress } from '@react-three/drei';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import * as THREE from 'three';
@@ -42,7 +42,7 @@ function SignatureDecal({ msg, mesh, scene }: { msg: Message; mesh: THREE.Mesh; 
   const texture = useTexture(msg.imageData!);
   
   const geometry = React.useMemo(() => {
-    const aspect = texture.image.width / texture.image.height;
+    const aspect = (texture.image as any).width / (texture.image as any).height;
     // Shrunk significantly to fit 100+ signatures
     const planeWidth = 0.15; 
     const planeHeight = planeWidth / aspect;

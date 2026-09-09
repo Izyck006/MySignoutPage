@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore";
@@ -116,7 +116,7 @@ export default function PublicSignOutPage() {
     }
 
     let finalPosition = [...position] as [number, number, number];
-    let finalNormal = normal ? [...normal] as [number, number, number] : [0, 0, 1];
+    let finalNormal = normal ? ([...normal] as [number, number, number]) : ([0, 0, 1] as [number, number, number]);
 
     const checkConflict = (pos: [number, number, number], norm: [number, number, number]) => {
       const [x1, y1, z1] = pos;
@@ -155,9 +155,10 @@ export default function PublicSignOutPage() {
         const offsetUp = upTangent.clone().multiplyScalar(Math.sin(angle) * radius);
 
         const candidatePos = new THREE.Vector3(...position).add(offsetRight).add(offsetUp);
+        const candidatePosArray = [candidatePos.x, candidatePos.y, candidatePos.z] as [number, number, number];
         
-        if (!checkConflict(candidatePos.toArray() as [number, number, number], finalNormal)) {
-          finalPosition = candidatePos.toArray() as [number, number, number];
+        if (!checkConflict(candidatePosArray, finalNormal)) {
+          finalPosition = candidatePosArray;
           foundSpot = true;
           break;
         }
