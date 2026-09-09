@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Canvas, createPortal } from '@react-three/fiber';
+import { Canvas, createPortal, useThree } from '@react-three/fiber';
 import { useGLTF, OrbitControls, Environment, ContactShadows, useTexture, Html, useProgress } from '@react-three/drei';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import * as THREE from 'three';
-import { DecalGeometry } from 'three-stdlib';
+import { DecalGeometry, GLTFExporter } from 'three-stdlib';
 
 interface Message {
   id: string;
@@ -20,6 +20,8 @@ interface ShirtModelProps {
   messages: Message[];
   onShirtClick?: (position: [number, number, number], normal: [number, number, number]) => void;
   readOnly?: boolean;
+  isExporting?: boolean;
+  onExportComplete?: () => void;
 }
 
 function Loader() {
@@ -163,10 +165,45 @@ function ShirtMesh({ messages, onShirtClick, readOnly }: ShirtModelProps) {
   );
 }
 
+// Helper component to trigger export from inside the Canvas
+function ModelExporter({ isExporting, onExportComplete }: { isExporting?: boolean; onExportComplete?: () => void }) {
+  const { scene } = useThree();
+
+  useEffect(() => {
+    if (isExporting) {
+      const exporter = new GLTFExporter();
+      exporter.parse(
+        scene,
+        (gltf) => {
+          const blob = new Blob([gltf as ArrayBuffer], { type: 'application/octet-stream' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.style.display = 'none';
+          link.href = url;
+          link.download = 'MySignout-Shirt.glb';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          if (onExportComplete) onExportComplete();
+        },
+        (error) => {
+          console.error('An error happened during export:', error);
+          if (onExportComplete) onExportComplete();
+        },
+        { binary: true } // Export as .glb
+      );
+    }
+  }, [isExporting, scene, onExportComplete]);
+
+  return null;
+}
+
 // Preload the model so it loads faster
 useGLTF.preload('/shirt.glb');
 
-export default function ShirtModelContainer({ messages, onShirtClick, readOnly = false }: ShirtModelProps) {
+export default function ShirtModelContainer({ messages, onShirtClick, readOnly = false, isExporting, onExportComplete }: ShirtModelProps) {
   const { width, height } = useWindowSize();
   
   return (
@@ -203,6 +240,7 @@ export default function ShirtModelContainer({ messages, onShirtClick, readOnly =
         
         <React.Suspense fallback={<Loader />}>
           <ShirtMesh messages={messages} onShirtClick={onShirtClick} readOnly={readOnly} />
+          <ModelExporter isExporting={isExporting} onExportComplete={onExportComplete} />
         </React.Suspense>
         
         <ContactShadows position={[0, -2.5, 0]} opacity={0.6} scale={20} blur={2.5} far={4} color="#1a1a1a" />

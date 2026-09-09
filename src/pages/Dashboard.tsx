@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../firebase";
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { Copy, Check, LogOut, ExternalLink, MessageSquare, User, Calendar, Trash2 } from "lucide-react";
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download } from "lucide-react";
 import ShirtModel from "../components/ShirtModel";
 
 interface Message {
@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [accountName, setAccountName] = useState("");
   const [savingGiftDetails, setSavingGiftDetails] = useState(false);
   const [isEditingGift, setIsEditingGift] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const publicLink = `${window.location.origin}/${username || currentUser?.uid}`;
 
@@ -42,8 +43,21 @@ export default function Dashboard() {
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setFullName(data.fullName || "");
-          setUsername(data.username || currentUser.uid);
+          const name = data.fullName || "";
+          setFullName(name);
+          
+          let currentUsername = data.username;
+          if (!currentUsername && name) {
+            // Self-heal: Generate a username for old accounts that don't have one
+            let baseSlug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            if (!baseSlug) baseSlug = "user";
+            currentUsername = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
+            
+            // Fire and forget update
+            updateDoc(userDocRef, { username: currentUsername }).catch(console.error);
+          }
+          
+          setUsername(currentUsername || currentUser.uid);
           setBankName(data.bankName || "");
           setAccountNumber(data.accountNumber || "");
           setAccountName(data.accountName || "");
@@ -54,13 +68,20 @@ export default function Dashboard() {
         } else {
           // Self-heal: Create the missing user document
           const defaultName = currentUser.displayName || "Student";
+          
+          let baseSlug = defaultName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+          if (!baseSlug) baseSlug = "user";
+          const newUsername = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
+
           await setDoc(userDocRef, {
             fullName: defaultName,
+            username: newUsername,
             email: currentUser.email,
             role: "student",
             createdAt: new Date().toISOString(),
           });
           setFullName(defaultName);
+          setUsername(newUsername);
         }
 
         const messagesRef = collection(db, "messages");
@@ -208,7 +229,22 @@ export default function Dashboard() {
             
             {/* 3D Shirt Viewer */}
             <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100">
-               <ShirtModel messages={messages} readOnly={true} />
+               <ShirtModel 
+                 messages={messages} 
+                 readOnly={true} 
+                 isExporting={isExporting}
+                 onExportComplete={() => setIsExporting(false)}
+               />
+               <div className="mt-4 pb-2 px-2 flex justify-end">
+                <button 
+                  onClick={() => setIsExporting(true)}
+                  disabled={isExporting}
+                  className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-wait"
+                >
+                  <Download size={18} className={isExporting ? "animate-bounce" : ""} />
+                  {isExporting ? "Packaging 3D Model..." : "Download 3D Model (.glb)"}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-4 mb-4">
