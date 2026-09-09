@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee, ChevronDown } from "lucide-react";
+import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee } from "lucide-react";
 import ShirtModel from "../components/ShirtModel";
 
 interface Message {
