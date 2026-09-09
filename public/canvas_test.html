@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Canvas Test</title>
+</head>
+<body>
+  <canvas id="myCanvas" width="600" height="300" style="border:1px solid black;"></canvas>
+  <script>
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Background
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)"; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Text
+    ctx.fillStyle = "#cca653";
+    ctx.font = "italic 42px 'Caveat', 'Brush Script MT', cursive";
+    
+    const content = "Debug test signature";
+    const senderName = "Test User";
+    
+    const textToDraw = content;
+    const words = textToDraw.split(" ");
+    let line = "";
+    let y = 60;
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + " ";
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > canvas.width - 60 && i > 0) {
+        ctx.fillText(line, 30, y);
+        line = words[i] + " ";
+        y += 50;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, 30, y);
+    
+    // Draw the name below the message
+    y += 70;
+    ctx.font = "bold 36px 'Caveat', 'Brush Script MT', cursive";
+    ctx.fillText(`- ${senderName}`, 60, y);
+    
+    console.log(canvas.toDataURL());
+  </script>
+</body>
+</html>
