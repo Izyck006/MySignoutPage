@@ -434,66 +434,71 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Support the Creator Card */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 overflow-hidden transition-all duration-200">
-              <button 
-                onClick={() => setIsSupportOpen(!isSupportOpen)}
-                className="w-full p-6 flex items-center justify-between text-left focus:outline-none hover:bg-amber-100/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="bg-amber-100 p-2 rounded-lg shrink-0">
-                    <Coffee size={24} className="text-amber-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-amber-900">Support the Creator</h3>
-                    <p className="text-sm text-amber-700">Keep the servers running! ☕</p>
-                  </div>
-                </div>
-                <ChevronDown 
-                  size={20} 
-                  className={`text-amber-700 shrink-0 transition-transform duration-200 ${isSupportOpen ? 'rotate-180' : ''}`} 
-                />
-              </button>
-              
-              {isSupportOpen && (
-                <div className="px-6 pb-6 animate-in slide-in-from-top-2 fade-in duration-200">
-                  <div className="bg-white/80 backdrop-blur-sm border border-amber-100 rounded-lg p-4 space-y-3">
-                    <div>
-                      <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Bank</div>
-                      <div className="font-medium text-amber-900">Opay</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Name</div>
-                      <div className="font-medium text-amber-900">Ehimen Isaac Audu</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Number</div>
-                      <div className="flex items-center justify-between bg-white border border-amber-200 rounded-md p-2 mt-1">
-                        <span className="font-mono text-lg font-bold text-amber-700 tracking-wide">7071316989</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText("7071316989");
-                            const btn = e.currentTarget;
-                            const originalHTML = btn.innerHTML;
-                            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
-                          }}
-                          className="p-2 text-amber-600 hover:text-amber-800 transition-colors bg-amber-50 hover:bg-amber-100 rounded-md"
-                          title="Copy Account Number"
-                        >
-                          <Copy size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
           </div>
         </div>
       </main>
+
+      {/* Support the Creator Floating Widget */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        {isSupportOpen && (
+          <div className="mb-4 w-80 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-2xl border border-amber-200 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200 origin-bottom-right">
+            <div className="p-5 border-b border-amber-200/60 bg-white/40 backdrop-blur-sm flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-bold text-amber-900">Support the Creator</h3>
+                <p className="text-sm text-amber-700">Keep the servers running! ☕</p>
+              </div>
+            </div>
+            <div className="p-5 bg-white/90 backdrop-blur-sm space-y-4">
+              <div>
+                <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Bank</div>
+                <div className="font-medium text-amber-900 text-lg">Opay</div>
+              </div>
+              <div>
+                <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Name</div>
+                <div className="font-medium text-amber-900 text-lg">Ehimen Isaac Audu</div>
+              </div>
+              <div>
+                <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Number</div>
+                <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl p-3 mt-1 shadow-inner">
+                  <span className="font-mono text-xl font-bold text-amber-700 tracking-wide">7071316989</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText("7071316989");
+                      const btn = e.currentTarget;
+                      const originalHTML = btn.innerHTML;
+                      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                      setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+                    }}
+                    className="p-2 text-amber-600 hover:text-amber-800 transition-colors bg-white hover:bg-amber-100 rounded-lg shadow-sm border border-amber-100"
+                    title="Copy Account Number"
+                  >
+                    <Copy size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <button
+          onClick={() => setIsSupportOpen(!isSupportOpen)}
+          className={`flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${
+            isSupportOpen 
+              ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300 rounded-full w-14 h-14' 
+              : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full px-6 py-4 gap-3'
+          }`}
+        >
+          {isSupportOpen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          ) : (
+            <>
+              <Coffee size={24} />
+              <span className="font-bold text-lg">Support the Creator</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
