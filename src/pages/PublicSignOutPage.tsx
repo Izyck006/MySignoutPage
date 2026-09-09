@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import ShirtModel from "../components/ShirtModel";
 import { PenTool, CheckCircle2, X, Gift, Copy } from "lucide-react";
+import NotFound from "./NotFound";
 import * as THREE from 'three';
 
 const COLORS = [
@@ -43,6 +44,15 @@ export default function PublicSignOutPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -210,6 +220,8 @@ export default function PublicSignOutPage() {
       setSuccess(true);
       setIsPlacingMode(false);
       setPendingSignature(null);
+      setSubmitting(false);
+      setCooldown(30);
     } catch (err) {
       console.error("Error saving signature:", err);
       alert("Failed to save your signature. Please try again.");
@@ -304,13 +316,7 @@ export default function PublicSignOutPage() {
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Page Not Found</h1>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <Link to="/" className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90">Go Home</Link>
-      </div>
-    );
+    return <NotFound />;
   }
 
   return (
@@ -338,9 +344,10 @@ export default function PublicSignOutPage() {
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-primary text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-primary/90 transition-colors shadow-sm"
+                  disabled={cooldown > 0}
+                  className={`bg-primary text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-primary/90 transition-colors shadow-sm disabled:bg-gray-400 ${cooldown > 0 ? "cursor-not-allowed" : ""}`}
                 >
-                  Sign the Shirt
+                  {cooldown > 0 ? `Wait ${cooldown}s to sign again` : "Sign the Shirt"}
                 </button>
                 {giftDetails && (
                   <button
@@ -396,6 +403,7 @@ export default function PublicSignOutPage() {
                 <input
                   type="text"
                   required
+                  maxLength={30}
                   value={senderName}
                   onChange={(e) => setSenderName(e.target.value)}
                   className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -404,9 +412,10 @@ export default function PublicSignOutPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type your signature or message</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type your signature or message (Max 150 chars)</label>
                 <textarea
                   rows={3}
+                  maxLength={150}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none font-sans"

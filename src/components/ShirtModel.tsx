@@ -170,7 +170,7 @@ export default function ShirtModelContainer({ messages, onShirtClick, readOnly =
   const { width, height } = useWindowSize();
   
   return (
-    <div className="w-full h-[600px] relative overflow-hidden rounded-2xl shadow-2xl border border-gray-200 cursor-grab active:cursor-grabbing"
+    <div className="w-full h-[450px] md:h-[600px] relative overflow-hidden rounded-2xl shadow-2xl border border-gray-200 cursor-grab active:cursor-grabbing"
          style={{
            background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(245,243,248,1) 50%, rgba(228,217,235,1) 100%)'
          }}>

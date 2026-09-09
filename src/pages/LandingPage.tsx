@@ -77,7 +77,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-secondary/10"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="text-center max-w-3xl mx-auto">
-              <h1 className="text-5xl md:text-6xl font-extrabold text-primary tracking-tight mb-6">
+              <h1 className="text-4xl md:text-6xl font-extrabold text-primary tracking-tight mb-6">
                 Capture the Moment.<br/>
                 <span className="text-primary">Your Final Year.</span><br/>
                 <span className="text-primary/80">Secured Forever.</span>
@@ -247,8 +247,13 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="border-t border-white/20 pt-8 text-center text-sm opacity-60">
+          <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm opacity-80">
             <p>&copy; {new Date().getFullYear()} MySignout. All rights reserved.</p>
+            <div className="flex gap-6">
+              <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/cookies" className="hover:text-white transition-colors">Cookie Policy</Link>
+            </div>
           </div>
         </div>
       </footer>

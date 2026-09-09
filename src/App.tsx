@@ -10,11 +10,14 @@ import Register from "./pages/Auth/Register";
 import TermsOfService from "./pages/Legal/TermsOfService";
 import PrivacyPolicy from "./pages/Legal/PrivacyPolicy";
 import CookiePolicy from "./pages/Legal/CookiePolicy";
+import CookieConsent from "./components/CookieConsent";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <CookieConsent />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
@@ -28,6 +31,7 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/:slug" element={<PublicSignOutPage />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </AuthProvider>
