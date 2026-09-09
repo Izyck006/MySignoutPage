@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee } from "lucide-react";
+import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee, ChevronDown } from "lucide-react";
 import ShirtModel from "../components/ShirtModel";
 
 interface Message {
@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [savingGiftDetails, setSavingGiftDetails] = useState(false);
   const [isEditingGift, setIsEditingGift] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   const publicLink = `${window.location.origin}/${username || currentUser?.uid}`;
 
@@ -434,46 +435,60 @@ export default function Dashboard() {
             </div>
 
             {/* Support the Creator Card */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl shadow-sm border border-amber-200">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="bg-amber-100 p-2 rounded-lg">
-                  <Coffee size={24} className="text-amber-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-amber-900">Support the Creator</h3>
-                  <p className="text-sm text-amber-700">Keep the servers running! ☕</p>
-                </div>
-              </div>
-              
-              <div className="bg-white/60 backdrop-blur-sm border border-amber-100 rounded-lg p-4 space-y-3">
-                <div>
-                  <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Bank</div>
-                  <div className="font-medium text-amber-900">Opay</div>
-                </div>
-                <div>
-                  <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Name</div>
-                  <div className="font-medium text-amber-900">Ehimen Isaac Audu</div>
-                </div>
-                <div>
-                  <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Number</div>
-                  <div className="flex items-center justify-between bg-white border border-amber-200 rounded-md p-2 mt-1">
-                    <span className="font-mono text-lg font-bold text-amber-700 tracking-wide">7071316989</span>
-                    <button
-                      onClick={(e) => {
-                        navigator.clipboard.writeText("7071316989");
-                        const btn = e.currentTarget;
-                        const originalHTML = btn.innerHTML;
-                        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                        setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
-                      }}
-                      className="p-2 text-amber-600 hover:text-amber-800 transition-colors bg-amber-50 hover:bg-amber-100 rounded-md"
-                      title="Copy Account Number"
-                    >
-                      <Copy size={16} />
-                    </button>
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 overflow-hidden transition-all duration-200">
+              <button 
+                onClick={() => setIsSupportOpen(!isSupportOpen)}
+                className="w-full p-6 flex items-center justify-between text-left focus:outline-none hover:bg-amber-100/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-100 p-2 rounded-lg shrink-0">
+                    <Coffee size={24} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-amber-900">Support the Creator</h3>
+                    <p className="text-sm text-amber-700">Keep the servers running! ☕</p>
                   </div>
                 </div>
-              </div>
+                <ChevronDown 
+                  size={20} 
+                  className={`text-amber-700 shrink-0 transition-transform duration-200 ${isSupportOpen ? 'rotate-180' : ''}`} 
+                />
+              </button>
+              
+              {isSupportOpen && (
+                <div className="px-6 pb-6 animate-in slide-in-from-top-2 fade-in duration-200">
+                  <div className="bg-white/80 backdrop-blur-sm border border-amber-100 rounded-lg p-4 space-y-3">
+                    <div>
+                      <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Bank</div>
+                      <div className="font-medium text-amber-900">Opay</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Name</div>
+                      <div className="font-medium text-amber-900">Ehimen Isaac Audu</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-amber-800/70 uppercase tracking-wider font-semibold mb-1">Account Number</div>
+                      <div className="flex items-center justify-between bg-white border border-amber-200 rounded-md p-2 mt-1">
+                        <span className="font-mono text-lg font-bold text-amber-700 tracking-wide">7071316989</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText("7071316989");
+                            const btn = e.currentTarget;
+                            const originalHTML = btn.innerHTML;
+                            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+                          }}
+                          className="p-2 text-amber-600 hover:text-amber-800 transition-colors bg-amber-50 hover:bg-amber-100 rounded-md"
+                          title="Copy Account Number"
+                        >
+                          <Copy size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
           </div>

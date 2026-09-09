@@ -78,12 +78,12 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="text-center max-w-3xl mx-auto">
               <h1 className="text-4xl md:text-6xl font-extrabold text-primary tracking-tight mb-6">
-                Capture the Moment.<br/>
+                The Ultimate Sign-Out.<br/>
                 <span className="text-primary">Your Final Year.</span><br/>
-                <span className="text-primary/80">Secured Forever.</span>
+                <span className="text-primary/80">Your Digital White Shirt.</span>
               </h1>
               <p className="mt-6 text-xl text-gray-600 leading-relaxed mb-10">
-                A dedicated platform designed to safely archive your graduation memories. Seamlessly document signatures, final well-wishes, and notes from colleagues globally, ensuring your academic sign-out is professionally preserved.
+                Take the legendary Nigerian university sign-out tradition to the cloud. Get your interactive 3D white shirt, share your link, and collect permanent digital signatures from your coursemates and friends!
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link to="/register" className="bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1">
@@ -101,9 +101,9 @@ export default function LandingPage() {
         <section className="py-24 bg-gray-50" id="features">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-primary sm:text-4xl">The Essential Platform for Digital Sign-Out</h2>
+              <h2 className="text-3xl font-bold text-primary sm:text-4xl">The Ultimate Digital Sign-Out Experience</h2>
               <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
-                Reliable infrastructure to transition your graduation traditions into a secure, accessible online environment.
+                Keep your white shirt pristine forever. Transition the legendary sign-out day to a permanent digital archive.
               </p>
             </div>
 
@@ -113,9 +113,9 @@ export default function LandingPage() {
                 <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mb-6">
                   <PenTool className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Virtual Signatures</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Digital White Shirt</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Provide colleagues with a streamlined interface to leave authenticated digital signatures and structured graduation notes on your profile.
+                  Share your link and let your coursemates "sign your shirt" virtually with different marker colors, leaving permanent memories.
                 </p>
               </div>
 
@@ -124,9 +124,9 @@ export default function LandingPage() {
                 <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mb-6">
                   <Globe className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Universal Access</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Sign from Anywhere</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Geographical constraints are eliminated. Distribute your customized URL allowing colleagues from any region or department to participate.
+                  Friends missed your sign-out day? No problem. Share your unique link and let anyone sign your shirt from anywhere in the country.
                 </p>
               </div>
 
@@ -135,9 +135,9 @@ export default function LandingPage() {
                 <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mb-6">
                   <Shield className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Permanent Archive</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Never Fade, Never Wash</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Unlike physical garments, digital archives do not degrade. We utilize secure cloud storage to ensure lifetime availability of your records.
+                  Physical markers fade, and shirts get old. Your digital sign-out shirt is securely stored in the cloud, so you can revisit those memories years after graduation.
                 </p>
               </div>
             </div>
@@ -148,25 +148,25 @@ export default function LandingPage() {
         <section className="py-24 bg-white" id="how-it-works">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-primary sm:text-4xl">Platform Workflow</h2>
-              <p className="mt-4 text-xl text-gray-600">Initiate your digital sign-out in three structured phases.</p>
+              <h2 className="text-3xl font-bold text-primary sm:text-4xl">How to Sign Out Digitally</h2>
+              <p className="mt-4 text-xl text-gray-600">Get your virtual white shirt ready in three simple steps.</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 text-center">
               <div className="relative">
                 <div className="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-6 z-10 relative shadow-lg">1</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Account Provisioning</h3>
-                <p className="text-gray-600">Register on the platform to instantly generate your dedicated university sign-out domain.</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Create Your Shirt</h3>
+                <p className="text-gray-600">Register in seconds to generate your very own interactive 3D white shirt and custom sign-out link.</p>
               </div>
               <div className="relative">
                 <div className="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-6 z-10 relative shadow-lg">2</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Distribute URL</h3>
-                <p className="text-gray-600">Deploy your unique link across your networks for colleagues to access your profile.</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Share Your Link</h3>
+                <p className="text-gray-600">Drop your link in your departmental WhatsApp groups or share it directly with your favorite coursemates.</p>
               </div>
               <div className="relative">
                 <div className="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-6 z-10 relative shadow-lg">3</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Aggregate Data</h3>
-                <p className="text-gray-600">Monitor your dashboard as verified signatures and formal notes are recorded to your account.</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Collect Signatures</h3>
+                <p className="text-gray-600">Watch your 3D shirt fill up with colorful signatures, well wishes, and memories from your friends.</p>
               </div>
             </div>
           </div>
@@ -181,16 +181,16 @@ export default function LandingPage() {
             <div className="space-y-6">
               {[
                 {
-                  q: "What is the cost associated with MySignout?",
-                  a: "The core platform infrastructure, including account creation and message aggregation, is provided at no cost to users."
+                  q: "Is it free to use MySignout?",
+                  a: "Yes! Creating your digital white shirt and collecting signatures from your friends is completely free."
                 },
                 {
-                  q: "Who is authorized to interact with my page?",
-                  a: "Access is controlled via your unique URL. Any individual who possesses this link has the authorization to submit a signature."
+                  q: "Who can sign my shirt?",
+                  a: "Anyone with your unique link can sign your shirt! They don't even need to create an account, making it super easy for your coursemates."
                 },
                 {
-                  q: "What is the data retention policy?",
-                  a: "Data is retained securely within our cloud infrastructure indefinitely, granting you perpetual access to your graduation records."
+                  q: "Will my signatures disappear after a while?",
+                  a: "Never! Your digital white shirt and all the signatures on it are permanently saved in the cloud. You can revisit them years after graduation."
                 }
               ].map((faq, i) => (
                 <div key={i} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -216,7 +216,7 @@ export default function LandingPage() {
                 <span className="text-xl font-bold text-white">MySignout</span>
               </div>
               <p className="text-primary-100 text-sm opacity-80 max-w-xs">
-                A professional infrastructure for archiving university graduation records globally.
+                Taking the legendary Nigerian university sign-out tradition to the cloud. Preserve your graduation memories forever.
               </p>
             </div>
             
