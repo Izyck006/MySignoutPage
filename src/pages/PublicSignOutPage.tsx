@@ -340,19 +340,19 @@ export default function PublicSignOutPage() {
                 : "Leave a memorable signature on the digital shirt!"}
             </p>
             
-            {!success && !isPlacingMode && (
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
+            {!isPlacingMode && (
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                 <button
                   onClick={() => setIsModalOpen(true)}
                   disabled={cooldown > 0}
-                  className={`bg-primary text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-primary/90 transition-colors shadow-sm disabled:bg-gray-400 ${cooldown > 0 ? "cursor-not-allowed" : ""}`}
+                  className={`w-full sm:w-auto bg-primary text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-primary/90 transition-colors shadow-sm disabled:bg-gray-400 ${cooldown > 0 ? "cursor-not-allowed" : ""}`}
                 >
-                  {cooldown > 0 ? `Wait ${cooldown}s to sign again` : "Sign the Shirt"}
+                  {cooldown > 0 ? `Wait ${cooldown}s` : "Sign the Shirt"}
                 </button>
                 {giftDetails && (
                   <button
                     onClick={() => setIsGiftModalOpen(true)}
-                    className="bg-white text-primary border-2 border-primary px-8 py-3 rounded-full font-bold text-lg hover:bg-gray-50 transition-colors shadow-sm flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto bg-white text-primary border-2 border-primary px-8 py-3 rounded-full font-bold text-lg hover:bg-gray-50 transition-colors shadow-sm flex items-center justify-center gap-2"
                   >
                     <Gift size={20} />
                     Send a Gift
@@ -374,7 +374,7 @@ export default function PublicSignOutPage() {
             )}
           </div>
 
-          <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex-grow min-h-[500px]">
+          <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex-grow">
              <ShirtModel messages={messages} onShirtClick={handleShirtClick} />
           </div>
         </div>
