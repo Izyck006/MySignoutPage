@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import ShirtModel from "../components/ShirtModel";
-import { Copy, Check, MessageSquare, AlertCircle, Share2, Facebook, Twitter } from "lucide-react";
+import { Copy, PenTool, CheckCircle2, X, Gift } from "lucide-react";
 import NotFound from "./NotFound";
 import * as THREE from 'three';
 
