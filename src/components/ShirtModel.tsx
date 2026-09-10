@@ -153,6 +153,11 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, o
         m.push(child as THREE.Mesh);
       }
     });
+    
+    // Log bounding box for debugging
+    const box = new THREE.Box3().setFromObject(scene);
+    console.log("SHIRT BOUNDING BOX:", box.min, box.max);
+    
     setMeshes(m);
   }, [scene, material]);
   useEffect(() => {
