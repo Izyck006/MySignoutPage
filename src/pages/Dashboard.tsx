@@ -235,6 +235,7 @@ export default function Dashboard() {
                  readOnly={true} 
                  isExporting={isExporting}
                  onExportComplete={() => setIsExporting(false)}
+                 ownerName={fullName}
                />
                <div className="mt-4 pb-2 px-2 flex justify-end">
                 <button 

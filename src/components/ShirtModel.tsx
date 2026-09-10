@@ -22,6 +22,7 @@ interface ShirtModelProps {
   readOnly?: boolean;
   isExporting?: boolean;
   onExportComplete?: () => void;
+  ownerName?: string;
 }
 
 function Loader() {
@@ -93,7 +94,85 @@ function SignatureDecal({ msg, mesh, scene }: { msg: Message; mesh: THREE.Mesh; 
   );
 }
 
-function ShirtMesh({ messages, onShirtClick, readOnly }: ShirtModelProps) {
+function OwnerNameDecal({ name, mesh, scene }: { name: string; mesh: THREE.Mesh; scene: THREE.Object3D }) {
+  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
+
+  useEffect(() => {
+    if (!name) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "transparent";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Auto-shrink text to fit
+      let fontSize = 160;
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      while (ctx.measureText(name).width > 900 && fontSize > 20) {
+        fontSize -= 10;
+        ctx.font = `bold ${fontSize}px sans-serif`;
+      }
+      
+      // A nice color for the owner's name (maybe a dark grey or matching the theme)
+      ctx.fillStyle = "#111827"; 
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(name, canvas.width / 2, canvas.height / 2);
+      
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 16;
+      setTexture(tex);
+    }
+  }, [name]);
+
+  const geometry = React.useMemo(() => {
+    if (!texture) return null;
+    
+    // Position at the upper back (in scene local coordinates)
+    const position = new THREE.Vector3(0, 0.15, -0.05); 
+    const normal = new THREE.Vector3(0, 0, -1);
+    const size = new THREE.Vector3(0.25, 0.08, 0.1); 
+    
+    scene.updateMatrixWorld(true);
+
+    const worldPos = scene.localToWorld(position.clone());
+    const meshLocalPos = mesh.worldToLocal(worldPos.clone());
+
+    const worldNormalPoint = scene.localToWorld(position.clone().add(normal));
+    const meshLocalNormalPoint = mesh.worldToLocal(worldNormalPoint);
+    const meshLocalNormal = meshLocalNormalPoint.sub(meshLocalPos).normalize();
+
+    const dummy = new THREE.Object3D();
+    dummy.position.copy(meshLocalPos);
+    dummy.lookAt(meshLocalPos.clone().add(meshLocalNormal));
+
+    const matrixWorld = mesh.matrixWorld.clone();
+    mesh.matrixWorld.identity();
+    const geo = new DecalGeometry(mesh, meshLocalPos, dummy.rotation, size);
+    mesh.matrixWorld = matrixWorld;
+
+    return geo;
+  }, [mesh, scene, texture]);
+
+  if (!geometry || !texture) return null;
+
+  return createPortal(
+    <mesh geometry={geometry}>
+      <meshBasicMaterial
+        map={texture}
+        transparent={true}
+        depthTest={true}
+        polygonOffset={true}
+        polygonOffsetFactor={-10}
+      />
+    </mesh>,
+    mesh
+  );
+}
+
+function ShirtMesh({ messages, onShirtClick, readOnly, ownerName }: ShirtModelProps) {
   const { scene } = useGLTF('/shirt.glb');
   const [meshes, setMeshes] = useState<THREE.Mesh[]>([]);
   
@@ -159,6 +238,9 @@ function ShirtMesh({ messages, onShirtClick, readOnly }: ShirtModelProps) {
               <SignatureDecal msg={msg} mesh={mesh} scene={scene} key={`${msg.id}-${index}`} />
             ))
           )}
+          {ownerName && meshes.map((mesh, index) => (
+            <OwnerNameDecal name={ownerName} mesh={mesh} scene={scene} key={`owner-${index}`} />
+          ))}
         </primitive>
       </group>
     </group>
@@ -203,7 +285,7 @@ function ModelExporter({ isExporting, onExportComplete }: { isExporting?: boolea
 // Preload the model so it loads faster
 useGLTF.preload('/shirt.glb');
 
-export default function ShirtModelContainer({ messages, onShirtClick, readOnly = false, isExporting, onExportComplete }: ShirtModelProps) {
+export default function ShirtModelContainer({ messages, onShirtClick, readOnly = false, isExporting, onExportComplete, ownerName }: ShirtModelProps) {
   const { width, height } = useWindowSize();
   
   return (
@@ -239,7 +321,7 @@ export default function ShirtModelContainer({ messages, onShirtClick, readOnly =
         <Environment preset="city" />
         
         <React.Suspense fallback={<Loader />}>
-          <ShirtMesh messages={messages} onShirtClick={onShirtClick} readOnly={readOnly} />
+          <ShirtMesh messages={messages} onShirtClick={onShirtClick} readOnly={readOnly} ownerName={ownerName} />
           <ModelExporter isExporting={isExporting} onExportComplete={onExportComplete} />
         </React.Suspense>
         

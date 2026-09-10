@@ -375,7 +375,7 @@ export default function PublicSignOutPage() {
           </div>
 
           <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex-grow">
-             <ShirtModel messages={messages} onShirtClick={handleShirtClick} />
+             <ShirtModel messages={messages} onShirtClick={handleShirtClick} ownerName={recipientName} />
           </div>
         </div>
       </main>
@@ -511,6 +511,22 @@ export default function PublicSignOutPage() {
                 {giftCopied ? `Thank you so much from ${recipientName}!` : 'Copy Account Number'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-screen Loading Overlay for applying signature */}
+      {submitting && isPlacingMode && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-in fade-in duration-200">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm text-center">
+            <div className="relative w-20 h-20 mb-6">
+              {/* Spinner */}
+              <div className="absolute inset-0 rounded-full border-4 border-gray-100"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+              <PenTool className="absolute inset-0 m-auto text-primary animate-pulse" size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Applying Signature...</h3>
+            <p className="text-gray-500 text-sm">Please wait while we magically ink your message onto the shirt.</p>
           </div>
         </div>
       )}
