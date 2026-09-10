@@ -1,27 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // 1. Row Level Security for Users
     match /users/{userId} {
-      // Anyone can read user data (necessary so the public page can resolve the username slug)
       allow read: if true;
-      
-      // Only the authenticated user who owns this ID can write to their profile
       allow create, update, delete: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // 2. Row Level Security for Messages
     match /messages/{messageId} {
-      // Anyone can read messages (so the public shirt loads for visitors)
       allow read: if true;
-      
-      // Anyone can CREATE a message (since it's a public sign-out page)
-      // SECURITY MEASURE: Check payload size to prevent malicious massive file uploads/strings
-      // 2097152 = 2MB string size limit
-      allow create: if request.resource.data.imageData.size() < 2097152;
-      
-      // Only the owner of the page (recipient) can update or delete messages on their shirt
+      allow create: if request.resource.data.imageData.size() < 2097152 && 
+                       get(/databases/$(database)/documents/users/$(request.resource.data.recipientId)).data.paymentStatus == 'paid';
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.recipientId;
     }
   }

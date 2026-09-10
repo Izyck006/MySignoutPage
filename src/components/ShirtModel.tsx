@@ -5,7 +5,6 @@ import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import * as THREE from 'three';
 import { DecalGeometry, GLTFExporter } from 'three-stdlib';
-
 interface Message {
   id: string;
   senderName: string;
@@ -15,7 +14,6 @@ interface Message {
   normal?: [number, number, number];
   tilt?: number;
 }
-
 interface ShirtModelProps {
   messages: Message[];
   onShirtClick?: (position: [number, number, number], normal: [number, number, number]) => void;
@@ -24,7 +22,6 @@ interface ShirtModelProps {
   onExportComplete?: () => void;
   ownerName?: string;
 }
-
 function Loader() {
   const { progress } = useProgress();
   return (
@@ -40,46 +37,32 @@ function Loader() {
     </Html>
   );
 }
-
 function SignatureDecal({ msg, mesh, scene }: { msg: Message; mesh: THREE.Mesh; scene: THREE.Object3D }) {
   const texture = useTexture(msg.imageData!);
-  
   const geometry = React.useMemo(() => {
     const aspect = (texture.image as any).width / (texture.image as any).height;
-    // Shrunk significantly to fit 100+ signatures
     const planeWidth = 0.15; 
     const planeHeight = planeWidth / aspect;
-
-    // CRITICAL: Ensure world matrices are up-to-date before conversion
     scene.updateMatrixWorld(true);
-
-    // Convert position and normal from scene local space to mesh local space
     const sceneLocalPos = new THREE.Vector3(...msg.position);
     const worldPos = scene.localToWorld(sceneLocalPos.clone());
     const meshLocalPos = mesh.worldToLocal(worldPos.clone());
-
     const sceneLocalNormal = new THREE.Vector3(...(msg.normal || [0, 0, 1])).normalize();
     const worldNormalPoint = scene.localToWorld(sceneLocalPos.clone().add(sceneLocalNormal));
     const meshLocalNormalPoint = mesh.worldToLocal(worldNormalPoint);
     const meshLocalNormal = meshLocalNormalPoint.sub(meshLocalPos).normalize();
-
     const dummy = new THREE.Object3D();
     dummy.position.copy(meshLocalPos);
     dummy.lookAt(meshLocalPos.clone().add(meshLocalNormal));
     if (msg.tilt) {
       dummy.rotateZ(msg.tilt);
     }
-
-    // DecalGeometry expects position in world space when mesh.matrixWorld is identity!
     const matrixWorld = mesh.matrixWorld.clone();
     mesh.matrixWorld.identity();
-    // CRITICAL: Depth must be very small (e.g. 0.05) so it doesn't bleed through the front of the shirt to the back or inside!
     const geo = new DecalGeometry(mesh, meshLocalPos, dummy.rotation, new THREE.Vector3(planeWidth, planeHeight, 0.05));
     mesh.matrixWorld = matrixWorld;
-
     return geo;
   }, [msg, mesh, scene, texture]);
-
   return createPortal(
     <mesh geometry={geometry}>
       <meshBasicMaterial
@@ -93,10 +76,8 @@ function SignatureDecal({ msg, mesh, scene }: { msg: Message; mesh: THREE.Mesh; 
     mesh
   );
 }
-
 function OwnerNameDecal({ name, mesh, scene }: { name: string; mesh: THREE.Mesh; scene: THREE.Object3D }) {
   const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
-
   useEffect(() => {
     if (!name) return;
     const canvas = document.createElement("canvas");
@@ -106,58 +87,42 @@ function OwnerNameDecal({ name, mesh, scene }: { name: string; mesh: THREE.Mesh;
     if (ctx) {
       ctx.fillStyle = "transparent";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Auto-shrink text to fit
       let fontSize = 160;
       ctx.font = `bold ${fontSize}px sans-serif`;
       while (ctx.measureText(name).width > 900 && fontSize > 20) {
         fontSize -= 10;
         ctx.font = `bold ${fontSize}px sans-serif`;
       }
-      
-      // A nice color for the owner's name (maybe a dark grey or matching the theme)
       ctx.fillStyle = "#111827"; 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(name, canvas.width / 2, canvas.height / 2);
-      
       const tex = new THREE.CanvasTexture(canvas);
       tex.anisotropy = 16;
       setTexture(tex);
     }
   }, [name]);
-
   const geometry = React.useMemo(() => {
     if (!texture) return null;
-    
-    // Position at the upper back (in scene local coordinates)
     const position = new THREE.Vector3(0, 0.15, -0.05); 
     const normal = new THREE.Vector3(0, 0, -1);
     const size = new THREE.Vector3(0.25, 0.08, 0.1); 
-    
     scene.updateMatrixWorld(true);
-
     const worldPos = scene.localToWorld(position.clone());
     const meshLocalPos = mesh.worldToLocal(worldPos.clone());
-
     const worldNormalPoint = scene.localToWorld(position.clone().add(normal));
     const meshLocalNormalPoint = mesh.worldToLocal(worldNormalPoint);
     const meshLocalNormal = meshLocalNormalPoint.sub(meshLocalPos).normalize();
-
     const dummy = new THREE.Object3D();
     dummy.position.copy(meshLocalPos);
     dummy.lookAt(meshLocalPos.clone().add(meshLocalNormal));
-
     const matrixWorld = mesh.matrixWorld.clone();
     mesh.matrixWorld.identity();
     const geo = new DecalGeometry(mesh, meshLocalPos, dummy.rotation, size);
     mesh.matrixWorld = matrixWorld;
-
     return geo;
   }, [mesh, scene, texture]);
-
   if (!geometry || !texture) return null;
-
   return createPortal(
     <mesh geometry={geometry}>
       <meshBasicMaterial
@@ -171,18 +136,15 @@ function OwnerNameDecal({ name, mesh, scene }: { name: string; mesh: THREE.Mesh;
     mesh
   );
 }
-
 function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, onExportComplete }: ShirtModelProps) {
   const { scene } = useGLTF('/shirt.glb');
   const [meshes, setMeshes] = useState<THREE.Mesh[]>([]);
-  
   const material = React.useMemo(() => new THREE.MeshStandardMaterial({
     color: '#ffffff',
     roughness: 1,
     metalness: 0.1,
     side: THREE.DoubleSide
   }), []);
-
   useEffect(() => {
     const m: THREE.Mesh[] = [];
     scene.traverse((child) => {
@@ -193,7 +155,6 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, o
     });
     setMeshes(m);
   }, [scene, material]);
-
   useEffect(() => {
     if (isExporting) {
       const exporter = new GLTFExporter();
@@ -210,7 +171,6 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, o
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-          
           if (onExportComplete) onExportComplete();
         },
         (error) => {
@@ -221,31 +181,21 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, o
       );
     }
   }, [isExporting, scene, onExportComplete]);
-
   const handleClick = (e: any) => {
     if (readOnly || !onShirtClick) return;
     e.stopPropagation();
-    
     const { point, face, object } = e;
-    
-    // Convert click point to the scene's local space
     const localPoint = scene.worldToLocal(point.clone());
-    
-    // Calculate world normal
     let worldNormal = new THREE.Vector3(0, 0, 1);
     if (face) {
       const normalMatrix = new THREE.Matrix3().getNormalMatrix(object.matrixWorld);
       worldNormal = face.normal.clone().applyMatrix3(normalMatrix).normalize();
     }
-    
-    // Convert world normal to scene's local normal
     const worldNormalPoint = point.clone().add(worldNormal);
     const localNormalPoint = scene.worldToLocal(worldNormalPoint);
     const localNormal = localNormalPoint.sub(localPoint).normalize();
-    
     onShirtClick([localPoint.x, localPoint.y, localPoint.z], [localNormal.x, localNormal.y, localNormal.z]);
   };
-
   return (
     <group>
       <group position={[0, -5.5, 0]}>
@@ -260,7 +210,6 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, o
             if (!readOnly) document.body.style.cursor = 'auto';
           }}
         >
-          {/* Render signatures organically onto the shirt using Decals */}
           {messages.map((msg) =>
             meshes.map((mesh, index) => (
               <SignatureDecal msg={msg} mesh={mesh} scene={scene} key={`${msg.id}-${index}`} />
@@ -274,22 +223,14 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, o
     </group>
   );
 }
-
-
-
-// Preload the model so it loads faster
 useGLTF.preload('/shirt.glb');
-
 export default function ShirtModelContainer({ messages, onShirtClick, readOnly = false, isExporting, onExportComplete, ownerName }: ShirtModelProps) {
   const { width, height } = useWindowSize();
-  
   return (
     <div className="w-full h-[450px] md:h-[600px] relative overflow-hidden rounded-2xl shadow-2xl border border-gray-200 cursor-grab active:cursor-grabbing"
          style={{
            background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(245,243,248,1) 50%, rgba(228,217,235,1) 100%)'
          }}>
-      
-      {/* Subtle background confetti */}
       <div className="absolute inset-0 pointer-events-none opacity-40">
         <Confetti
           width={width || 800}
@@ -300,7 +241,6 @@ export default function ShirtModelContainer({ messages, onShirtClick, readOnly =
           colors={['#D4AF37', '#C0C0C0', '#FDF5E6', '#222222']}
         />
       </div>
-
       {!readOnly && (
         <div className="absolute top-4 left-0 right-0 text-center z-10 pointer-events-none">
           <div className="inline-block bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-md">
@@ -308,13 +248,11 @@ export default function ShirtModelContainer({ messages, onShirtClick, readOnly =
           </div>
         </div>
       )}
-      
       <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 10]} intensity={1} />
         <directionalLight position={[-10, 10, -10]} intensity={0.5} />
         <Environment preset="city" />
-        
         <React.Suspense fallback={<Loader />}>
           <ShirtMesh 
             messages={messages} 
@@ -325,7 +263,6 @@ export default function ShirtModelContainer({ messages, onShirtClick, readOnly =
             onExportComplete={onExportComplete} 
           />
         </React.Suspense>
-        
         <ContactShadows position={[0, -2.5, 0]} opacity={0.6} scale={20} blur={2.5} far={4} color="#1a1a1a" />
         <OrbitControls 
           enablePan={false} 

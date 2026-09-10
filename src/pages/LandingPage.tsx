@@ -1,34 +1,25 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Globe, Shield, ChevronDown } from 'lucide-react';
-
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900">
-      {/* Navigation Bar */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="text-2xl font-bold text-primary flex items-center gap-2">
                 <span>MySignout</span>
               </Link>
             </div>
-
-            {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
               <a href="#about" className="text-gray-600 hover:text-primary font-medium transition-colors">About</a>
               <a href="#features" className="text-gray-600 hover:text-primary font-medium transition-colors">Features</a>
               <a href="#how-it-works" className="text-gray-600 hover:text-primary font-medium transition-colors">How it works</a>
               <a href="#faq" className="text-gray-600 hover:text-primary font-medium transition-colors">FAQ</a>
             </nav>
-
-            {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-4">
               <Link to="/login" className="text-primary font-medium hover:text-primary/80 transition-colors">
                 Log in
@@ -40,8 +31,6 @@ export default function LandingPage() {
                 Create page
               </Link>
             </div>
-
-            {/* Mobile menu button */}
             <div className="flex md:hidden items-center">
               <button 
                 onClick={toggleMenu}
@@ -52,8 +41,6 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-b border-gray-200">
             <div className="px-4 pt-2 pb-6 space-y-2 flex flex-col">
@@ -61,7 +48,6 @@ export default function LandingPage() {
               <a href="#features" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md" onClick={toggleMenu}>Features</a>
               <a href="#how-it-works" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md" onClick={toggleMenu}>How it works</a>
               <a href="#faq" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md" onClick={toggleMenu}>FAQ</a>
-              
               <div className="pt-4 flex flex-col gap-3 px-3">
                 <Link to="/login" className="text-center w-full py-2.5 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50">Log in</Link>
                 <Link to="/register" className="text-center w-full py-2.5 bg-primary text-white rounded-full font-medium hover:bg-primary/90">Create page</Link>
@@ -70,9 +56,7 @@ export default function LandingPage() {
           </div>
         )}
       </header>
-
       <main className="flex-grow">
-        {/* Hero Section */}
         <section className="relative bg-white pt-20 pb-32 overflow-hidden" id="about">
           <div className="absolute inset-0 bg-secondary/10"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -96,8 +80,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-        {/* Features Section */}
         <section className="py-24 bg-gray-50" id="features">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
@@ -106,9 +88,7 @@ export default function LandingPage() {
                 Keep your white shirt pristine forever. Transition the legendary sign-out day to a permanent digital archive.
               </p>
             </div>
-
             <div className="grid md:grid-cols-3 gap-12">
-              {/* Feature 1 */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mb-6">
                 </div>
@@ -117,8 +97,6 @@ export default function LandingPage() {
                   Share your link and let your coursemates "sign your shirt" virtually with different marker colors, leaving permanent memories.
                 </p>
               </div>
-
-              {/* Feature 2 */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mb-6">
                   <Globe className="h-7 w-7 text-primary" />
@@ -128,8 +106,6 @@ export default function LandingPage() {
                   Friends missed your sign-out day? No problem. Share your unique link and let anyone sign your shirt from anywhere in the country.
                 </p>
               </div>
-
-              {/* Feature 3 */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mb-6">
                   <Shield className="h-7 w-7 text-primary" />
@@ -142,15 +118,12 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-        {/* How It Works Section */}
         <section className="py-24 bg-white" id="how-it-works">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold text-primary sm:text-4xl">How to Sign Out Digitally</h2>
               <p className="mt-4 text-xl text-gray-600">Get your virtual white shirt ready in three simple steps.</p>
             </div>
-
             <div className="grid md:grid-cols-3 gap-8 text-center">
               <div className="relative">
                 <div className="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-6 z-10 relative shadow-lg">1</div>
@@ -170,8 +143,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-        {/* FAQ Section */}
         <section className="py-24 bg-gray-50" id="faq">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -204,8 +175,6 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-
-      {/* Footer */}
       <footer className="bg-primary text-white pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -217,7 +186,6 @@ export default function LandingPage() {
                 Taking the legendary Nigerian university sign-out tradition to the cloud. Preserve your graduation memories forever.
               </p>
             </div>
-            
             <div>
               <h4 className="font-semibold text-lg mb-4 text-secondary">Platform</h4>
               <ul className="space-y-2 opacity-80 text-sm">
@@ -226,7 +194,6 @@ export default function LandingPage() {
                 <li><a href="#faq" className="hover:text-white hover:opacity-100 transition-opacity">Information</a></li>
               </ul>
             </div>
-            
             <div>
               <h4 className="font-semibold text-lg mb-4 text-secondary">Legal</h4>
               <ul className="space-y-2 opacity-80 text-sm">
@@ -235,7 +202,6 @@ export default function LandingPage() {
                 <li><Link to="/cookies" className="hover:text-white hover:opacity-100 transition-opacity">Cookie Policy</Link></li>
               </ul>
             </div>
-            
             <div>
               <h4 className="font-semibold text-lg mb-4 text-secondary">Connect</h4>
               <ul className="space-y-2 opacity-80 text-sm">
@@ -244,7 +210,6 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          
           <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm opacity-80">
             <p>&copy; {new Date().getFullYear()} MySignout. All rights reserved.</p>
             <div className="flex gap-6">

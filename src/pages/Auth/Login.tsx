@@ -2,13 +2,11 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase";
 import { useNavigate, Link } from "react-router-dom";
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -19,7 +17,6 @@ export default function Login() {
       setError(err.message || "Failed to login");
     }
   };
-
   return (
     <div className="flex justify-center items-center h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 bg-white rounded shadow">

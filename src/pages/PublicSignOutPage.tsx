@@ -6,7 +6,6 @@ import ShirtModel from "../components/ShirtModel";
 import { Copy, CheckCircle2, X, Gift } from "lucide-react";
 import NotFound from "./NotFound";
 import * as THREE from 'three';
-
 const COLORS = [
   { name: 'Purple', hex: '#9333ea' },
   { name: 'Amber', hex: '#f59e0b' },
@@ -14,17 +13,13 @@ const COLORS = [
   { name: 'Red', hex: '#ef4444' },
   { name: 'Black', hex: '#111827' }
 ];
-
-// Helper to wrap text on canvas
 const wrapText = (context: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
   const words = text.split(' ');
   let line = '';
   let currentY = y;
-
   for (let n = 0; n < words.length; n++) {
     const testLine = line + words[n] + ' ';
     const metrics = context.measureText(testLine);
-    
     if (metrics.width > maxWidth && n > 0) {
       context.fillText(line.trim(), x, currentY);
       line = words[n] + ' ';
@@ -36,7 +31,6 @@ const wrapText = (context: CanvasRenderingContext2D, text: string, x: number, y:
   context.fillText(line.trim(), x, currentY);
   return currentY + lineHeight;
 };
-
 export default function PublicSignOutPage() {
   const { slug } = useParams<{ slug: string }>();
   const [recipientName, setRecipientName] = useState("");
@@ -44,60 +38,49 @@ export default function PublicSignOutPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
   const [cooldown, setCooldown] = useState(0);
-
   useEffect(() => {
     if (cooldown > 0) {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [cooldown]);
-
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
-  
-  // Gift State
   const [giftDetails, setGiftDetails] = useState<{bankName: string, accountName: string, accountNumber: string} | null>(null);
   const [giftCopied, setGiftCopied] = useState(false);
-  
-  // Placement State
   const [isPlacingMode, setIsPlacingMode] = useState(false);
   const [pendingSignature, setPendingSignature] = useState<any>(null);
-  
-  // Form State
   const [senderName, setSenderName] = useState("");
   const [content, setContent] = useState("");
   const [selectedColor, setSelectedColor] = useState(COLORS[4].hex);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-
   useEffect(() => {
     const fetchPageData = async () => {
       if (!slug) return;
       try {
         let userDocData = null;
         let foundRecipientId = slug;
-
-        // Try to find user by custom username first
         const usersRef = collection(db, "users");
         const userQ = query(usersRef, where("username", "==", slug));
         const userSnapshot = await getDocs(userQ);
-
         if (!userSnapshot.empty) {
           userDocData = userSnapshot.docs[0].data();
           foundRecipientId = userSnapshot.docs[0].id;
         } else {
-          // Fallback to searching by document ID (for older links without usernames)
           const userDocRef = await getDoc(doc(db, "users", slug));
           if (userDocRef.exists()) {
             userDocData = userDocRef.data();
             foundRecipientId = userDocRef.id;
           }
         }
-
         if (userDocData) {
+          if (userDocData.paymentStatus !== 'paid') {
+            setError("This account is currently inactive and cannot receive signatures at this time.");
+            setLoading(false);
+            return;
+          }
           setRecipientName(userDocData.fullName);
           setActualRecipientId(foundRecipientId);
           if (userDocData.accountNumber && userDocData.bankName && userDocData.accountName) {
@@ -111,11 +94,9 @@ export default function PublicSignOutPage() {
           setError("This sign-out page does not exist.");
           return;
         }
-
         const messagesRef = collection(db, "messages");
         const q = query(messagesRef, where("recipientId", "==", foundRecipientId));
         const querySnapshot = await getDocs(q);
-        
         const fetchedMessages: any[] = [];
         querySnapshot.forEach((doc) => {
           fetchedMessages.push({ id: doc.id, ...doc.data() });
@@ -128,26 +109,19 @@ export default function PublicSignOutPage() {
         setLoading(false);
       }
     };
-
     fetchPageData();
   }, [slug]);
-
   const MIN_DISTANCE = 0.2; // Adjusted minimum distance between signatures to fit more
-
   const handleShirtClick = async (position: [number, number, number], normal?: [number, number, number]) => {
     if (success) return; // Prevent signing again if already signed
-    
     if (!isPlacingMode || !pendingSignature) {
-      // Friendly UX: If they click the shirt without clicking "Sign" first, just open the modal
       if (!isModalOpen && !isPlacingMode) {
         setIsModalOpen(true);
       }
       return;
     }
-
     let finalPosition = [...position] as [number, number, number];
     let finalNormal = normal ? ([...normal] as [number, number, number]) : ([0, 0, 1] as [number, number, number]);
-
     const checkConflict = (pos: [number, number, number], norm: [number, number, number]) => {
       const [x1, y1, z1] = pos;
       const [nx1, ny1, nz1] = norm;
@@ -155,52 +129,39 @@ export default function PublicSignOutPage() {
         const [x2, y2, z2] = msg.position;
         const msgNormal = msg.normal || [0, 0, 1];
         const [nx2, ny2, nz2] = msgNormal;
-        
         const distance = Math.sqrt(
           Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2)
         );
-        
         const dotProduct = nx1 * nx2 + ny1 * ny2 + nz1 * nz2;
-        
-        // If distance < MIN_DISTANCE and dotProduct > 0.5 (meaning they face similar directions)
         return distance < MIN_DISTANCE && dotProduct > 0.5;
       });
     };
-
     if (checkConflict(finalPosition, finalNormal)) {
       let foundSpot = false;
       const MAX_ATTEMPTS = 150; // Try plenty of spots
-      
       const N = new THREE.Vector3(...finalNormal).normalize();
       let up = new THREE.Vector3(0, 1, 0);
       if (Math.abs(N.y) > 0.9) up = new THREE.Vector3(1, 0, 0);
       const right = new THREE.Vector3().crossVectors(N, up).normalize();
       const upTangent = new THREE.Vector3().crossVectors(right, N).normalize();
-
       for (let i = 1; i <= MAX_ATTEMPTS; i++) {
         const radius = Math.sqrt(i) * 0.05; // Increase radius progressively
         const angle = i * 2.39996; // Golden angle for even distribution
-
         const offsetRight = right.clone().multiplyScalar(Math.cos(angle) * radius);
         const offsetUp = upTangent.clone().multiplyScalar(Math.sin(angle) * radius);
-
         const candidatePos = new THREE.Vector3(...position).add(offsetRight).add(offsetUp);
         const candidatePosArray = [candidatePos.x, candidatePos.y, candidatePos.z] as [number, number, number];
-        
         if (!checkConflict(candidatePosArray, finalNormal)) {
           finalPosition = candidatePosArray;
           foundSpot = true;
           break;
         }
       }
-
       if (!foundSpot) {
         alert("This area is too crowded! Please click somewhere else.");
         return;
       }
     }
-
-    // Process the placement
     setSubmitting(true);
     try {
       const newMessage = {
@@ -213,9 +174,7 @@ export default function PublicSignOutPage() {
         tilt: pendingSignature.tilt || 0,
         createdAt: new Date().toISOString(),
       };
-
       const docRef = await addDoc(collection(db, "messages"), newMessage);
-      
       setMessages([...messages, { id: docRef.id, ...newMessage }]);
       setSuccess(true);
       setIsPlacingMode(false);
@@ -229,35 +188,22 @@ export default function PublicSignOutPage() {
       setSubmitting(false);
     }
   };
-
   const handleSign = (e: React.FormEvent) => {
     e.preventDefault();
     if (!senderName.trim()) return;
-    
     let imageData = "";
-    
-    // Random tilt between -15 and 15 degrees, converted to radians
     const tilt = (Math.random() * 30 - 15) * (Math.PI / 180);
-
-    // Generate an image from the typed message
     if (content.trim() || senderName.trim()) {
       const canvas = document.createElement("canvas");
-      // We will resize it after calculating text height
       canvas.width = 1024;
       canvas.height = 1024; 
       const ctx = canvas.getContext("2d");
-      
       if (ctx) {
-        // Must load the font config to measure accurately
         ctx.font = "80px 'Caveat', cursive";
-        
         const maxWidth = 900;
         const lineHeight = 90;
         const padding = 50;
-        
         const textToWrap = content.trim() ? `${content.trim()} — ${senderName.trim()}` : senderName.trim();
-        
-        // Measure height
         const words = textToWrap.split(' ');
         let line = '';
         let currentY = padding;
@@ -271,42 +217,29 @@ export default function PublicSignOutPage() {
           }
         }
         const totalHeight = currentY + lineHeight + padding;
-        
-        // Resize canvas to perfectly bound the text
         canvas.width = 1024;
         canvas.height = totalHeight;
-        
-        // Clear transparent background
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Context resets on resize, so re-apply
         ctx.fillStyle = selectedColor;
         ctx.font = "80px 'Caveat', cursive";
         ctx.textBaseline = "top";
-        
         wrapText(ctx, textToWrap, padding, padding, maxWidth, lineHeight);
-        
         imageData = canvas.toDataURL("image/png");
       }
     }
-
     if (!imageData) {
       alert("Please type a message!");
       return;
     }
-
-    // Save temporarily and enter placement mode
     setPendingSignature({
       senderName,
       content: "", // Content is now embedded in the image
       imageData,
       tilt,
     });
-    
     setIsModalOpen(false);
     setIsPlacingMode(true);
   };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -314,11 +247,9 @@ export default function PublicSignOutPage() {
       </div>
     );
   }
-
   if (error) {
     return <NotFound />;
   }
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <header className="bg-white border-b border-gray-200">
@@ -328,9 +259,7 @@ export default function PublicSignOutPage() {
           </Link>
         </div>
       </header>
-
       <main className="flex-grow flex flex-col lg:flex-row max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 gap-8">
-        {/* Left Column: Instructions & 3D Model */}
         <div className="flex-1 flex flex-col gap-6">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
             <h1 className="text-3xl font-bold text-primary mb-2">{recipientName}'s Sign-out Page</h1>
@@ -339,7 +268,6 @@ export default function PublicSignOutPage() {
                 ? "Thank you for signing! Your message is now part of history." 
                 : "Leave a memorable signature on the digital shirt!"}
             </p>
-            
             {!isPlacingMode && (
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                 <button
@@ -360,7 +288,6 @@ export default function PublicSignOutPage() {
                 )}
               </div>
             )}
-            
             {isPlacingMode && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg flex items-center justify-between shadow-inner animate-in fade-in slide-in-from-top-2">
                 <span className="font-medium text-left">Great! Now tap anywhere on the 3D shirt to place your signature.</span>
@@ -373,14 +300,11 @@ export default function PublicSignOutPage() {
               </div>
             )}
           </div>
-
           <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex-grow">
              <ShirtModel messages={messages} onShirtClick={handleShirtClick} ownerName={recipientName} />
           </div>
         </div>
       </main>
-
-      {/* Signature Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -395,7 +319,6 @@ export default function PublicSignOutPage() {
                 <X size={20} />
               </button>
             </div>
-            
             <form onSubmit={handleSign} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
@@ -409,7 +332,6 @@ export default function PublicSignOutPage() {
                   placeholder="e.g. John Doe"
                 />
               </div>
-              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type your signature or message (Max 150 chars)</label>
                 <textarea
@@ -421,7 +343,6 @@ export default function PublicSignOutPage() {
                   placeholder="Leave a memorable message..."
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Ink Color</label>
                 <div className="flex gap-3">
@@ -437,7 +358,6 @@ export default function PublicSignOutPage() {
                   ))}
                 </div>
               </div>
-              
               <button
                 type="submit"
                 disabled={submitting}
@@ -456,8 +376,6 @@ export default function PublicSignOutPage() {
           </div>
         </div>
       )}
-
-      {/* Gift Modal */}
       {isGiftModalOpen && giftDetails && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -473,12 +391,10 @@ export default function PublicSignOutPage() {
                 <X size={20} />
               </button>
             </div>
-            
             <div className="p-6 space-y-4">
               <p className="text-gray-600 mb-4">
                 Want to send a graduation or leaving gift? Here are the bank details:
               </p>
-              
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
                 <div>
                   <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Bank Name</div>
@@ -493,7 +409,6 @@ export default function PublicSignOutPage() {
                   <div className="font-medium text-gray-900 font-mono text-lg">{giftDetails.accountNumber}</div>
                 </div>
               </div>
-
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(giftDetails.accountNumber);
@@ -513,13 +428,10 @@ export default function PublicSignOutPage() {
           </div>
         </div>
       )}
-
-      {/* Full-screen Loading Overlay for applying signature */}
       {submitting && isPlacingMode && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-in fade-in duration-200">
           <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm text-center">
             <div className="relative w-20 h-20 mb-6">
-              {/* Spinner */}
               <div className="absolute inset-0 rounded-full border-4 border-gray-100"></div>
               <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
             </div>

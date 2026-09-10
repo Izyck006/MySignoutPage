@@ -4,59 +4,72 @@ import { auth, db } from "../../firebase";
 import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-
+import { usePaystackPayment } from 'react-paystack';
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
-
+  const paystackConfig = {
+    reference: (new Date()).getTime().toString(),
+    email: email,
+    amount: 50000, // 500 NGN in kobo
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+  };
+  const initializePayment = usePaystackPayment(paystackConfig);
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    // Password Validation: 8+ chars, at least 1 uppercase, at least 1 number
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d\W]{8,}$/;
     if (!passwordRegex.test(password)) {
       setError("Password must be at least 8 characters, contain at least one uppercase letter, and one number.");
       return;
     }
-
     try {
+      setIsProcessing(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
       let baseSlug = fullName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       if (!baseSlug) baseSlug = "user";
-      
       let finalSlug = baseSlug;
-      
-      // Check for uniqueness
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("username", "==", finalSlug));
       const querySnapshot = await getDocs(q);
-      
       if (!querySnapshot.empty) {
         finalSlug = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
       }
-
-      // Create user document in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        fullName,
-        username: finalSlug,
-        email,
-        role: "student",
-        createdAt: new Date().toISOString(),
+      initializePayment({
+        onSuccess: async (reference: any) => {
+          try {
+            await setDoc(doc(db, "users", user.uid), {
+              fullName,
+              username: finalSlug,
+              email,
+              role: "student",
+              paymentStatus: "paid",
+              paystackReference: reference.reference,
+              createdAt: new Date().toISOString(),
+            });
+            navigate("/dashboard");
+          } catch (dbErr: any) {
+            setError("Payment successful but failed to setup account. Please contact support.");
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        onClose: () => {
+          setIsProcessing(false);
+          navigate("/complete-payment");
+        }
       });
-
-      navigate("/dashboard");
     } catch (err: any) {
       setError(err.message || "Failed to register");
+      setIsProcessing(false);
     }
   };
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 py-12">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-sm border border-gray-100">
@@ -106,8 +119,8 @@ export default function Register() {
               Must be at least 8 characters, include an uppercase letter and a number.
             </p>
           </div>
-          <button type="submit" className="w-full bg-primary text-white p-3 rounded-md hover:bg-primary/90 font-bold transition-colors">
-            Register
+          <button type="submit" disabled={isProcessing} className="w-full bg-primary text-white p-3 rounded-md hover:bg-primary/90 font-bold transition-colors disabled:opacity-70">
+            {isProcessing ? "Processing..." : "Pay 500 NGN & Register"}
           </button>
         </form>
         <p className="text-center mt-6 text-sm text-gray-600">

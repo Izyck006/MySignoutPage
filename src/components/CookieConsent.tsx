@@ -1,29 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cookie } from 'lucide-react';
-
 export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
     const consent = localStorage.getItem('cookieConsent');
     if (!consent) {
       setIsVisible(true);
     }
   }, []);
-
   const acceptCookies = () => {
     localStorage.setItem('cookieConsent', 'accepted');
     setIsVisible(false);
   };
-
   const rejectCookies = () => {
     localStorage.setItem('cookieConsent', 'rejected');
     setIsVisible(false);
   };
-
   if (!isVisible) return null;
-
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 p-4 transform transition-transform duration-300 ease-in-out">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">

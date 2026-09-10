@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Shirt, ArrowLeft } from 'lucide-react';
-
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -6,7 +6,6 @@ import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } fro
 import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee, AlertTriangle } from "lucide-react";
 import { deleteUser } from "firebase/auth";
 import ShirtModel from "../components/ShirtModel";
-
 interface Message {
   id: string;
   senderName: string;
@@ -14,18 +13,14 @@ interface Message {
   createdAt: string;
   position: [number, number, number];
 }
-
 export default function Dashboard() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-
-  // Gift Details State
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
@@ -34,68 +29,46 @@ export default function Dashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-
   const publicLink = `${window.location.origin}/${username || currentUser?.uid}`;
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!currentUser) return;
-      
       try {
         const userDocRef = doc(db, "users", currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          const name = data.fullName || "";
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const data = userDocSnap.data();
+          if (data.paymentStatus !== 'paid') {
+            navigate("/complete-payment");
+            return;
+          }
+          const name = data.fullName || currentUser.displayName || "Student";
           setFullName(name);
-          
           let currentUsername = data.username;
           if (!currentUsername && name) {
-            // Self-heal: Generate a username for old accounts that don't have one
             let baseSlug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
             if (!baseSlug) baseSlug = "user";
             currentUsername = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
-            
-            // Fire and forget update
             updateDoc(userDocRef, { username: currentUsername }).catch(console.error);
           }
-          
           setUsername(currentUsername || currentUser.uid);
           setBankName(data.bankName || "");
           setAccountNumber(data.accountNumber || "");
           setAccountName(data.accountName || "");
-          
           if (!data.bankName || !data.accountNumber || !data.accountName) {
             setIsEditingGift(true);
           }
         } else {
-          // Self-heal: Create the missing user document
-          const defaultName = currentUser.displayName || "Student";
-          
-          let baseSlug = defaultName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-          if (!baseSlug) baseSlug = "user";
-          const newUsername = `${baseSlug}-${Math.floor(Math.random() * 10000)}`;
-
-          await setDoc(userDocRef, {
-            fullName: defaultName,
-            username: newUsername,
-            email: currentUser.email,
-            role: "student",
-            createdAt: new Date().toISOString(),
-          });
-          setFullName(defaultName);
-          setUsername(newUsername);
+          navigate("/complete-payment");
+          return;
         }
-
         const messagesRef = collection(db, "messages");
         const q = query(messagesRef, where("recipientId", "==", currentUser.uid));
         const querySnapshot = await getDocs(q);
-        
         const fetchedMessages: Message[] = [];
         querySnapshot.forEach((doc) => {
           fetchedMessages.push({ id: doc.id, ...doc.data() } as Message);
         });
-        
         fetchedMessages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setMessages(fetchedMessages);
       } catch (error) {
@@ -104,10 +77,8 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, [currentUser]);
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -116,7 +87,6 @@ export default function Dashboard() {
       console.error("Failed to log out", error);
     }
   };
-
   const handleDeleteSignature = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this signature?")) {
       try {
@@ -129,26 +99,17 @@ export default function Dashboard() {
       }
     }
   };
-
   const handleDeleteAccount = async () => {
     if (!currentUser) return;
-    
     const confirmMessage = "Are you absolutely sure you want to delete your account?\n\nThis will permanently delete:\n- Your 3D shirt\n- All signatures you've collected\n- Your user profile\n\nThis action CANNOT be undone.";
-    
     if (window.confirm(confirmMessage)) {
       setIsDeletingAccount(true);
       try {
         const { deleteDoc, doc } = await import("firebase/firestore");
-        
-        // Delete all signatures on the user's shirt
         for (const msg of messages) {
           await deleteDoc(doc(db, "messages", msg.id));
         }
-        
-        // Delete user's document
         await deleteDoc(doc(db, "users", currentUser.uid));
-        
-        // Delete user auth record
         try {
           await deleteUser(currentUser);
           navigate("/login");
@@ -170,17 +131,13 @@ export default function Dashboard() {
       }
     }
   };
-
   const handleSaveGiftDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
-    
-    // Validate 10 digits
     if (accountNumber && !/^\d{10}$/.test(accountNumber)) {
       alert("Account number must be exactly 10 digits.");
       return;
     }
-
     setSavingGiftDetails(true);
     try {
       await setDoc(doc(db, "users", currentUser.uid), {
@@ -197,13 +154,11 @@ export default function Dashboard() {
       setSavingGiftDetails(false);
     }
   };
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(publicLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-12 animate-pulse">
@@ -234,7 +189,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -254,7 +208,6 @@ export default function Dashboard() {
           </div>
         </div>
       </nav>
-
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
@@ -267,11 +220,8 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
-            
-            {/* 3D Shirt Viewer */}
             <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100">
                <ShirtModel 
                  messages={messages} 
@@ -291,7 +241,6 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-
             <div className="flex items-center justify-between pt-4 mb-4">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <MessageSquare className="text-primary" size={24} />
@@ -300,7 +249,6 @@ export default function Dashboard() {
                   {messages.length}
                 </span>
               </h2>
-              
               {messages.length > 0 && (
                 <button
                   onClick={async () => {
@@ -323,7 +271,6 @@ export default function Dashboard() {
                 </button>
               )}
             </div>
-
             {messages.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -360,20 +307,17 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-
           <div className="space-y-6 sticky top-24 h-fit">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Share Your Page</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Send this link to anyone you want to sign your digital year book. They don't need an account to sign.
               </p>
-              
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between mb-4">
                 <span className="text-sm text-gray-600 truncate mr-2 select-all">
                   {publicLink}
                 </span>
               </div>
-              
               <div className="flex flex-col gap-3">
                 <button
                   onClick={copyToClipboard}
@@ -386,7 +330,6 @@ export default function Dashboard() {
                   {copied ? <Check size={18} /> : <Copy size={18} />}
                   {copied ? 'Copied!' : 'Copy Link'}
                 </button>
-                
                 <Link
                   to={`/${username || currentUser?.uid}`}
                   target="_blank"
@@ -397,8 +340,6 @@ export default function Dashboard() {
                 </Link>
               </div>
             </div>
-
-            {/* Gift Details Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Gift Account Details</h3>
@@ -411,11 +352,9 @@ export default function Dashboard() {
                   </button>
                 )}
               </div>
-              
               <p className="text-sm text-gray-600 mb-4">
                 Allow visitors to send you a gift by providing your bank details. Clear the fields to hide this on your public page.
               </p>
-              
               {isEditingGift ? (
                 <form onSubmit={handleSaveGiftDetails} className="space-y-4">
                   <div>
@@ -428,7 +367,6 @@ export default function Dashboard() {
                       placeholder="e.g. Chase Bank"
                     />
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
                     <input
@@ -439,7 +377,6 @@ export default function Dashboard() {
                       placeholder="e.g. John Doe"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Account Number (10 digits)</label>
                     <input
@@ -451,7 +388,6 @@ export default function Dashboard() {
                       maxLength={10}
                     />
                   </div>
-                  
                   <button
                     type="submit"
                     disabled={savingGiftDetails}
@@ -477,8 +413,6 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-
-            {/* Danger Zone */}
             <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 mt-6">
               <h3 className="text-lg font-bold text-red-600 flex items-center gap-2 mb-2">
                 <AlertTriangle size={20} />
@@ -495,13 +429,9 @@ export default function Dashboard() {
                 {isDeletingAccount ? "Deleting Account..." : "Delete Account"}
               </button>
             </div>
-
-
           </div>
         </div>
       </main>
-
-      {/* Support the Creator Floating Widget */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         {isSupportOpen && (
           <div className="mb-4 w-80 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-2xl border border-amber-200 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200 origin-bottom-right">
@@ -543,7 +473,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        
         <button
           onClick={() => setIsSupportOpen(!isSupportOpen)}
           className={`flex items-center justify-center shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${
