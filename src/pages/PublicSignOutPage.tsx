@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import ShirtModel from "../components/ShirtModel";
-import { Copy, PenTool, CheckCircle2, X, Gift } from "lucide-react";
+import { Copy, CheckCircle2, X, Gift } from "lucide-react";
 import NotFound from "./NotFound";
 import * as THREE from 'three';
 
@@ -386,7 +386,6 @@ export default function PublicSignOutPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <PenTool size={18} className="text-primary" />
                 Sign the Shirt
               </h3>
               <button 
@@ -523,7 +522,6 @@ export default function PublicSignOutPage() {
               {/* Spinner */}
               <div className="absolute inset-0 rounded-full border-4 border-gray-100"></div>
               <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-              <PenTool className="absolute inset-0 m-auto text-primary animate-pulse" size={32} />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Applying Signature...</h3>
             <p className="text-gray-500 text-sm">Please wait while we magically ink your message onto the shirt.</p>

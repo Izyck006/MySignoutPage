@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { PenTool, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export default function CookiePolicy() {
   return (
@@ -10,9 +10,8 @@ export default function CookiePolicy() {
             <Link to="/" className="text-gray-500 hover:text-primary mr-6">
               <ArrowLeft className="h-6 w-6" />
             </Link>
-            <Link to="/" className="text-2xl font-bold text-primary flex items-center gap-2">
-              <PenTool className="h-6 w-6 text-primary" />
-              <span>MySignout</span>
+            <Link to="/" className="text-2xl font-bold">
+              <span className="text-xl font-bold text-primary">MySignout</span>
             </Link>
           </div>
         </div>

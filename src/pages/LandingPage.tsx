@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, PenTool, Globe, Shield, ChevronDown } from 'lucide-react';
+import { Menu, X, Globe, Shield, ChevronDown } from 'lucide-react';
 
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -111,7 +111,6 @@ export default function LandingPage() {
               {/* Feature 1 */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="w-14 h-14 bg-secondary/30 rounded-xl flex items-center justify-center mb-6">
-                  <PenTool className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Digital White Shirt</h3>
                 <p className="text-gray-600 leading-relaxed">
@@ -212,7 +211,6 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <PenTool className="h-6 w-6 text-secondary" />
                 <span className="text-xl font-bold text-white">MySignout</span>
               </div>
               <p className="text-primary-100 text-sm opacity-80 max-w-xs">
