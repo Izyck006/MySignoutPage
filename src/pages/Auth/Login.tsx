@@ -14,7 +14,13 @@ export default function Login() {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Failed to login");
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setError("Invalid email or password");
+      } else if (err.code === 'auth/too-many-requests') {
+        setError("Too many failed login attempts. Please try again later.");
+      } else {
+        setError("An error occurred during login. Please try again.");
+      }
     }
   };
   return (
@@ -34,7 +40,10 @@ export default function Login() {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700 mb-2 text-sm font-bold">Password</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-gray-700 text-sm font-bold">Password</label>
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</Link>
+            </div>
             <input
               type="password"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-primary"

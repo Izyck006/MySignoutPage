@@ -66,7 +66,13 @@ export default function Register() {
         }
       });
     } catch (err: any) {
-      setError(err.message || "Failed to register");
+      if (err.code === 'auth/email-already-in-use') {
+        setError("An account with this email already exists.");
+      } else if (err.code === 'auth/invalid-email') {
+        setError("Please enter a valid email address.");
+      } else {
+        setError("An error occurred during registration. Please try again.");
+      }
       setIsProcessing(false);
     }
   };

@@ -104,9 +104,9 @@ function OwnerNameDecal({ name, mesh, scene }: { name: string; mesh: THREE.Mesh;
   }, [name]);
   const geometry = React.useMemo(() => {
     if (!texture) return null;
-    const position = new THREE.Vector3(0, 0.15, -0.05); 
+    const position = new THREE.Vector3(0, 0.15, 0); 
     const normal = new THREE.Vector3(0, 0, -1);
-    const size = new THREE.Vector3(0.25, 0.08, 0.1); 
+    const size = new THREE.Vector3(0.3, 0.1, 0.6); 
     scene.updateMatrixWorld(true);
     const worldPos = scene.localToWorld(position.clone());
     const meshLocalPos = mesh.worldToLocal(worldPos.clone());
