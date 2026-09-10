@@ -2,9 +2,12 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase";
 import { useNavigate, Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const handleLogin = async (e: React.FormEvent) => {
@@ -44,13 +47,23 @@ export default function Login() {
               <label className="block text-gray-700 text-sm font-bold">Password</label>
               <Link to="/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</Link>
             </div>
-            <input
-              type="password"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-primary"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-primary pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
           <button type="submit" className="w-full bg-primary text-white p-2 rounded hover:bg-blue-700 font-bold">
             Login
