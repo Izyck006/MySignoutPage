@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Canvas, createPortal, useThree } from '@react-three/fiber';
+import { Canvas, createPortal } from '@react-three/fiber';
 import { useGLTF, OrbitControls, Environment, ContactShadows, useTexture, Html, useProgress } from '@react-three/drei';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
