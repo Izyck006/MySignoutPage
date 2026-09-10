@@ -3,7 +3,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee } from "lucide-react";
+import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee, AlertTriangle } from "lucide-react";
+import { deleteUser } from "firebase/auth";
 import ShirtModel from "../components/ShirtModel";
 
 interface Message {
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const [isEditingGift, setIsEditingGift] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const publicLink = `${window.location.origin}/${username || currentUser?.uid}`;
 
@@ -124,6 +126,47 @@ export default function Dashboard() {
       } catch (err) {
         console.error("Failed to delete message:", err);
         alert("Failed to delete signature.");
+      }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!currentUser) return;
+    
+    const confirmMessage = "Are you absolutely sure you want to delete your account?\n\nThis will permanently delete:\n- Your 3D shirt\n- All signatures you've collected\n- Your user profile\n\nThis action CANNOT be undone.";
+    
+    if (window.confirm(confirmMessage)) {
+      setIsDeletingAccount(true);
+      try {
+        const { deleteDoc, doc } = await import("firebase/firestore");
+        
+        // Delete all signatures on the user's shirt
+        for (const msg of messages) {
+          await deleteDoc(doc(db, "messages", msg.id));
+        }
+        
+        // Delete user's document
+        await deleteDoc(doc(db, "users", currentUser.uid));
+        
+        // Delete user auth record
+        try {
+          await deleteUser(currentUser);
+          navigate("/login");
+        } catch (authErr: any) {
+          console.error("Auth deletion error:", authErr);
+          if (authErr.code === 'auth/requires-recent-login') {
+            alert("Your data was deleted, but for security reasons, you must log in again to fully delete your authentication record. Please log out, log back in, and click delete again.");
+          } else {
+            alert("Your data was deleted, but we failed to remove your authentication record. Please contact support.");
+          }
+          await logout();
+          navigate("/login");
+        }
+      } catch (err: any) {
+        console.error("Failed to delete account:", err);
+        alert("An error occurred while deleting your account data. Please try again.");
+      } finally {
+        setIsDeletingAccount(false);
       }
     }
   };
@@ -434,6 +477,25 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+
+            {/* Danger Zone */}
+            <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 mt-6">
+              <h3 className="text-lg font-bold text-red-600 flex items-center gap-2 mb-2">
+                <AlertTriangle size={20} />
+                Danger Zone
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Permanently delete your account, your 3D shirt, and all signatures you've collected. This action cannot be undone.
+              </p>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="w-full bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-md font-medium hover:bg-red-100 transition-colors disabled:opacity-70 flex justify-center items-center"
+              >
+                {isDeletingAccount ? "Deleting Account..." : "Delete Account"}
+              </button>
+            </div>
+
 
           </div>
         </div>
