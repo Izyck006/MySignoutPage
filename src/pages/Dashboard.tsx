@@ -220,8 +220,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Shirt Column - Center */}
+          <div className="lg:col-span-5 space-y-6 order-1 lg:order-2">
             <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 sticky top-[10vh] md:top-[15vh] z-10">
                <ShirtModel 
                  messages={messages} 
@@ -241,6 +242,10 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
+          </div>
+          
+          {/* Signatures Log Column - Left */}
+          <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
             <div className="flex items-center justify-between pt-4 mb-4">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <MessageSquare className="text-primary" size={24} />
@@ -307,7 +312,9 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          <div className="space-y-6 sticky top-24 h-fit">
+
+          {/* Settings Column - Right */}
+          <div className="lg:col-span-3 space-y-6 sticky top-24 h-fit order-3">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Share Your Page</h3>
               <p className="text-sm text-gray-600 mb-4">
