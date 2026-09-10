@@ -222,7 +222,7 @@ export default function Dashboard() {
         </div>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
-            <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 sticky top-[10vh] md:top-[15vh] z-10">
                <ShirtModel 
                  messages={messages} 
                  readOnly={true} 

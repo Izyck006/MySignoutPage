@@ -300,7 +300,7 @@ export default function PublicSignOutPage() {
               </div>
             )}
           </div>
-          <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex-grow">
+          <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex-grow sticky top-[10vh] md:top-[15vh] z-10">
              <ShirtModel messages={messages} onShirtClick={handleShirtClick} ownerName={recipientName} />
           </div>
         </div>
