@@ -172,7 +172,7 @@ function OwnerNameDecal({ name, mesh, scene }: { name: string; mesh: THREE.Mesh;
   );
 }
 
-function ShirtMesh({ messages, onShirtClick, readOnly, ownerName }: ShirtModelProps) {
+function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, onExportComplete }: ShirtModelProps) {
   const { scene } = useGLTF('/shirt.glb');
   const [meshes, setMeshes] = useState<THREE.Mesh[]>([]);
   
@@ -193,6 +193,34 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName }: ShirtModelPr
     });
     setMeshes(m);
   }, [scene, material]);
+
+  useEffect(() => {
+    if (isExporting) {
+      const exporter = new GLTFExporter();
+      exporter.parse(
+        scene,
+        (gltf) => {
+          const blob = new Blob([gltf as ArrayBuffer], { type: 'application/octet-stream' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.style.display = 'none';
+          link.href = url;
+          link.download = 'MySignout-Shirt.glb';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          if (onExportComplete) onExportComplete();
+        },
+        (error) => {
+          console.error('An error happened during export:', error);
+          if (onExportComplete) onExportComplete();
+        },
+        { binary: true } // Export as .glb
+      );
+    }
+  }, [isExporting, scene, onExportComplete]);
 
   const handleClick = (e: any) => {
     if (readOnly || !onShirtClick) return;
@@ -247,40 +275,7 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName }: ShirtModelPr
   );
 }
 
-// Helper component to trigger export from inside the Canvas
-function ModelExporter({ isExporting, onExportComplete }: { isExporting?: boolean; onExportComplete?: () => void }) {
-  const { scene } = useThree();
 
-  useEffect(() => {
-    if (isExporting) {
-      const exporter = new GLTFExporter();
-      exporter.parse(
-        scene,
-        (gltf) => {
-          const blob = new Blob([gltf as ArrayBuffer], { type: 'application/octet-stream' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.style.display = 'none';
-          link.href = url;
-          link.download = 'MySignout-Shirt.glb';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          
-          if (onExportComplete) onExportComplete();
-        },
-        (error) => {
-          console.error('An error happened during export:', error);
-          if (onExportComplete) onExportComplete();
-        },
-        { binary: true } // Export as .glb
-      );
-    }
-  }, [isExporting, scene, onExportComplete]);
-
-  return null;
-}
 
 // Preload the model so it loads faster
 useGLTF.preload('/shirt.glb');
@@ -321,8 +316,14 @@ export default function ShirtModelContainer({ messages, onShirtClick, readOnly =
         <Environment preset="city" />
         
         <React.Suspense fallback={<Loader />}>
-          <ShirtMesh messages={messages} onShirtClick={onShirtClick} readOnly={readOnly} ownerName={ownerName} />
-          <ModelExporter isExporting={isExporting} onExportComplete={onExportComplete} />
+          <ShirtMesh 
+            messages={messages} 
+            onShirtClick={onShirtClick} 
+            readOnly={readOnly} 
+            ownerName={ownerName} 
+            isExporting={isExporting} 
+            onExportComplete={onExportComplete} 
+          />
         </React.Suspense>
         
         <ContactShadows position={[0, -2.5, 0]} opacity={0.6} scale={20} blur={2.5} far={4} color="#1a1a1a" />
