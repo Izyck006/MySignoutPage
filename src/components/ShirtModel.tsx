@@ -104,9 +104,9 @@ function OwnerNameDecal({ name, mesh, scene }: { name: string; mesh: THREE.Mesh;
   }, [name]);
   const geometry = React.useMemo(() => {
     if (!texture) return null;
-    const position = new THREE.Vector3(0, 0.15, 0); 
-    const normal = new THREE.Vector3(0, 0, -1);
-    const size = new THREE.Vector3(0.3, 0.1, 0.6); 
+    const position = new THREE.Vector3(0, 0.6, -0.15); // Move higher and behind the shirt
+    const normal = new THREE.Vector3(0, 0, -1); // Project towards front (lookAt target is -Z, meaning +Z is towards front)
+    const size = new THREE.Vector3(0.4, 0.13, 0.3); // Slightly larger text area
     scene.updateMatrixWorld(true);
     const worldPos = scene.localToWorld(position.clone());
     const meshLocalPos = mesh.worldToLocal(worldPos.clone());
