@@ -5,7 +5,7 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase
 import ShirtModel from "../components/ShirtModel";
 import { Copy, CheckCircle2, X, Gift } from "lucide-react";
 import NotFound from "./NotFound";
-import * as THREE from 'three';
+
 const COLORS = [
   { name: 'Purple', hex: '#9333ea' },
   { name: 'Amber', hex: '#f59e0b' },
@@ -111,7 +111,7 @@ export default function PublicSignOutPage() {
     };
     fetchPageData();
   }, [slug]);
-  const MIN_DISTANCE = 0.2; // Adjusted minimum distance between signatures to fit more
+  const MIN_DISTANCE = 0.12; // Adjusted minimum distance between signatures to fit more
   const handleShirtClick = async (position: [number, number, number], normal?: [number, number, number]) => {
     if (success) return; // Prevent signing again if already signed
     if (!isPlacingMode || !pendingSignature) {
@@ -137,30 +137,8 @@ export default function PublicSignOutPage() {
       });
     };
     if (checkConflict(finalPosition, finalNormal)) {
-      let foundSpot = false;
-      const MAX_ATTEMPTS = 150; // Try plenty of spots
-      const N = new THREE.Vector3(...finalNormal).normalize();
-      let up = new THREE.Vector3(0, 1, 0);
-      if (Math.abs(N.y) > 0.9) up = new THREE.Vector3(1, 0, 0);
-      const right = new THREE.Vector3().crossVectors(N, up).normalize();
-      const upTangent = new THREE.Vector3().crossVectors(right, N).normalize();
-      for (let i = 1; i <= MAX_ATTEMPTS; i++) {
-        const radius = Math.sqrt(i) * 0.05; // Increase radius progressively
-        const angle = i * 2.39996; // Golden angle for even distribution
-        const offsetRight = right.clone().multiplyScalar(Math.cos(angle) * radius);
-        const offsetUp = upTangent.clone().multiplyScalar(Math.sin(angle) * radius);
-        const candidatePos = new THREE.Vector3(...position).add(offsetRight).add(offsetUp);
-        const candidatePosArray = [candidatePos.x, candidatePos.y, candidatePos.z] as [number, number, number];
-        if (!checkConflict(candidatePosArray, finalNormal)) {
-          finalPosition = candidatePosArray;
-          foundSpot = true;
-          break;
-        }
-      }
-      if (!foundSpot) {
-        alert("This area is too crowded! Please click somewhere else.");
-        return;
-      }
+      alert("This area is too crowded! Please click somewhere else.");
+      return;
     }
     setSubmitting(true);
     try {

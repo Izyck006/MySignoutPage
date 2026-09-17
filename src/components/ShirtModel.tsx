@@ -41,7 +41,7 @@ function SignatureDecal({ msg, mesh, scene }: { msg: Message; mesh: THREE.Mesh; 
   const texture = useTexture(msg.imageData!);
   const geometry = React.useMemo(() => {
     const aspect = (texture.image as any).width / (texture.image as any).height;
-    const planeWidth = 0.15; 
+    const planeWidth = 0.3; // Increased size for visibility
     const planeHeight = planeWidth / aspect;
     scene.updateMatrixWorld(true);
     const sceneLocalPos = new THREE.Vector3(...msg.position);
@@ -59,7 +59,7 @@ function SignatureDecal({ msg, mesh, scene }: { msg: Message; mesh: THREE.Mesh; 
     }
     const matrixWorld = mesh.matrixWorld.clone();
     mesh.matrixWorld.identity();
-    const geo = new DecalGeometry(mesh, meshLocalPos, dummy.rotation, new THREE.Vector3(planeWidth, planeHeight, 0.05));
+    const geo = new DecalGeometry(mesh, meshLocalPos, dummy.rotation, new THREE.Vector3(planeWidth, planeHeight, 0.5));
     mesh.matrixWorld = matrixWorld;
     return geo;
   }, [msg, mesh, scene, texture]);
@@ -68,9 +68,12 @@ function SignatureDecal({ msg, mesh, scene }: { msg: Message; mesh: THREE.Mesh; 
       <meshBasicMaterial
         map={texture}
         transparent={true}
+        depthWrite={false}
         depthTest={true}
         polygonOffset={true}
         polygonOffsetFactor={-10}
+        polygonOffsetUnits={-10}
+        side={THREE.DoubleSide}
       />
     </mesh>,
     mesh
@@ -216,12 +219,16 @@ function ShirtMesh({ messages, onShirtClick, readOnly, ownerName, isExporting, o
           }}
         >
           {messages.map((msg) =>
-            meshes.map((mesh, index) => (
-              <SignatureDecal msg={msg} mesh={mesh} scene={scene} key={`${msg.id}-${index}`} />
-            ))
+            msg.imageData ? meshes.map((mesh, index) => (
+              <React.Suspense key={`suspense-msg-${msg.id}-${index}`} fallback={null}>
+                <SignatureDecal msg={msg} mesh={mesh} scene={scene} />
+              </React.Suspense>
+            )) : null
           )}
           {ownerName && meshes.map((mesh, index) => (
-            <OwnerNameDecal name={ownerName} mesh={mesh} scene={scene} key={`owner-${index}`} />
+            <React.Suspense key={`suspense-owner-${index}`} fallback={null}>
+              <OwnerNameDecal name={ownerName} mesh={mesh} scene={scene} />
+            </React.Suspense>
           ))}
         </primitive>
       </group>
