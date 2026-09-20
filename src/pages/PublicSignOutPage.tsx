@@ -32,8 +32,9 @@ const wrapText = (context: CanvasRenderingContext2D, text: string, x: number, y:
   return currentY + lineHeight;
 };
 export default function PublicSignOutPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, shirtId } = useParams<{ slug: string; shirtId?: string }>();
   const [recipientName, setRecipientName] = useState("");
+  const [shirtTitle, setShirtTitle] = useState("");
   const [actualRecipientId, setActualRecipientId] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,6 +83,12 @@ export default function PublicSignOutPage() {
             return;
           }
           setRecipientName(userDocData.fullName);
+          if (shirtId && userDocData.shirts) {
+            const currentShirt = userDocData.shirts.find((s: any) => s.id === shirtId);
+            if (currentShirt) {
+              setShirtTitle(currentShirt.name);
+            }
+          }
           setActualRecipientId(foundRecipientId);
           if (userDocData.accountNumber && userDocData.bankName && userDocData.accountName) {
             setGiftDetails({
@@ -99,7 +106,16 @@ export default function PublicSignOutPage() {
         const querySnapshot = await getDocs(q);
         const fetchedMessages: any[] = [];
         querySnapshot.forEach((doc) => {
-          fetchedMessages.push({ id: doc.id, ...doc.data() });
+          const data = doc.data();
+          if (shirtId) {
+            if (data.shirtId === shirtId) {
+              fetchedMessages.push({ id: doc.id, ...data });
+            }
+          } else {
+            if (!data.shirtId || data.shirtId === 'default') {
+              fetchedMessages.push({ id: doc.id, ...data });
+            }
+          }
         });
         setMessages(fetchedMessages);
       } catch (err) {
@@ -142,7 +158,7 @@ export default function PublicSignOutPage() {
     }
     setSubmitting(true);
     try {
-      const newMessage = {
+      const newMessage: any = {
         recipientId: actualRecipientId,
         senderName: pendingSignature.senderName,
         content: pendingSignature.content,
@@ -152,6 +168,9 @@ export default function PublicSignOutPage() {
         tilt: pendingSignature.tilt || 0,
         createdAt: new Date().toISOString(),
       };
+      if (shirtId) {
+        newMessage.shirtId = shirtId;
+      }
       const docRef = await addDoc(collection(db, "messages"), newMessage);
       setMessages([...messages, { id: docRef.id, ...newMessage }]);
       setSuccess(true);
@@ -240,7 +259,9 @@ export default function PublicSignOutPage() {
       <main className="flex-grow flex flex-col lg:flex-row max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 gap-8">
         <div className="flex-1 flex flex-col gap-6">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
-            <h1 className="text-3xl font-bold text-primary mb-2">{recipientName}'s Sign-out Page</h1>
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              {shirtTitle ? `${shirtTitle} (${recipientName})` : `${recipientName}'s Sign-out Page`}
+            </h1>
             <p className="text-gray-600 text-lg mb-4">
               {success 
                 ? "Thank you for signing! Your message is now part of history." 

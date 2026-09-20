@@ -41,6 +41,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/:slug" element={<PublicSignOutPage />} />
+            <Route path="/:slug/:shirtId" element={<PublicSignOutPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

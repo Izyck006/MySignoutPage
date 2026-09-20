@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee, AlertTriangle } from "lucide-react";
+import { LogOut, User, MessageSquare, Trash2, ExternalLink, Copy, Check, Download, Calendar, Coffee, AlertTriangle, Plus, X } from "lucide-react";
 import { deleteUser } from "firebase/auth";
 import ShirtModel from "../components/ShirtModel";
 interface Message {
@@ -29,7 +29,13 @@ export default function Dashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const publicLink = `${window.location.origin}/${username || currentUser?.uid}`;
+  const [shirts, setShirts] = useState<{id: string, name: string}[]>([]);
+  const [selectedShirtId, setSelectedShirtId] = useState<string>("default");
+  const [isCreatingShirt, setIsCreatingShirt] = useState(false);
+  const [newShirtName, setNewShirtName] = useState("");
+  const publicLink = selectedShirtId === 'default' 
+    ? `${window.location.origin}/${username || currentUser?.uid}`
+    : `${window.location.origin}/${username || currentUser?.uid}/${selectedShirtId}`;
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!currentUser) return;
@@ -52,6 +58,11 @@ export default function Dashboard() {
             updateDoc(userDocRef, { username: currentUsername }).catch(console.error);
           }
           setUsername(currentUsername || currentUser.uid);
+          const loadedShirts = data.shirts || [];
+          if (!loadedShirts.some((s: any) => s.id === 'default')) {
+            loadedShirts.unshift({ id: 'default', name: 'Default Shirt' });
+          }
+          setShirts(loadedShirts);
           setBankName(data.bankName || "");
           setAccountNumber(data.accountNumber || "");
           setAccountName(data.accountName || "");
@@ -79,6 +90,31 @@ export default function Dashboard() {
     };
     fetchDashboardData();
   }, [currentUser]);
+
+  const displayedMessages = messages.filter(msg => {
+    if (selectedShirtId === 'default') {
+      return !(msg as any).shirtId || (msg as any).shirtId === 'default';
+    }
+    return (msg as any).shirtId === selectedShirtId;
+  });
+
+  const handleCreateShirt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newShirtName.trim() || !currentUser) return;
+    const newShirtId = 'shirt-' + Math.random().toString(36).substring(2, 9);
+    const newShirt = { id: newShirtId, name: newShirtName.trim(), createdAt: new Date().toISOString() };
+    try {
+      const updatedShirts = [...(shirts.filter(s => s.id !== 'default')), newShirt];
+      await updateDoc(doc(db, "users", currentUser.uid), { shirts: updatedShirts });
+      setShirts([{ id: 'default', name: 'Default Shirt' }, ...updatedShirts]);
+      setSelectedShirtId(newShirtId);
+      setIsCreatingShirt(false);
+      setNewShirtName("");
+    } catch (err) {
+      console.error("Error creating shirt:", err);
+      alert("Failed to create shirt");
+    }
+  };
   const handleLogout = async () => {
     try {
       await logout();
@@ -106,7 +142,7 @@ export default function Dashboard() {
       setIsDeletingAccount(true);
       try {
         const { deleteDoc, doc } = await import("firebase/firestore");
-        for (const msg of messages) {
+        for (const msg of displayedMessages) {
           await deleteDoc(doc(db, "messages", msg.id));
         }
         await deleteDoc(doc(db, "users", currentUser.uid));
@@ -219,13 +255,29 @@ export default function Dashboard() {
               <p className="text-gray-500">Manage your digital sign-out page and messages below.</p>
             </div>
           </div>
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0">
+            <select
+              value={selectedShirtId}
+              onChange={(e) => setSelectedShirtId(e.target.value)}
+              className="p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white font-medium text-gray-700 w-full md:w-auto min-w-[200px]"
+            >
+              {shirts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <button
+              onClick={() => setIsCreatingShirt(true)}
+              className="bg-primary text-white px-4 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 w-full md:w-auto whitespace-nowrap"
+            >
+              <Plus size={18} />
+              New Shirt
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Shirt Column - Center */}
           <div className="lg:col-span-5 space-y-6 order-1 lg:order-2">
             <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100 sticky top-[10vh] md:top-[15vh] z-10">
                <ShirtModel 
-                 messages={messages} 
+                 messages={displayedMessages} 
                  readOnly={true} 
                  isExporting={isExporting}
                  onExportComplete={() => setIsExporting(false)}
@@ -251,19 +303,20 @@ export default function Dashboard() {
                 <MessageSquare className="text-primary" size={24} />
                 Signatures Log
                 <span className="bg-primary text-white text-xs px-2.5 py-0.5 rounded-full ml-2">
-                  {messages.length}
+                  {displayedMessages.length}
                 </span>
               </h2>
-              {messages.length > 0 && (
+              {displayedMessages.length > 0 && (
                 <button
                   onClick={async () => {
-                    if (window.confirm("Are you sure you want to clear all signatures? This cannot be undone.")) {
+                    if (window.confirm("Are you sure you want to clear all signatures for this shirt? This cannot be undone.")) {
                       try {
                         const { deleteDoc, doc } = await import("firebase/firestore");
-                        for (const msg of messages) {
+                        for (const msg of displayedMessages) {
                           await deleteDoc(doc(db, "messages", msg.id));
                         }
-                        setMessages([]);
+                        const displayedIds = displayedMessages.map(m => m.id);
+                        setMessages(messages.filter(m => !displayedIds.includes(m.id)));
                       } catch (err) {
                         console.error("Failed to clear messages:", err);
                         alert("Failed to clear messages.");
@@ -276,7 +329,7 @@ export default function Dashboard() {
                 </button>
               )}
             </div>
-            {messages.length === 0 ? (
+            {displayedMessages.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageSquare size={28} className="text-gray-400" />
@@ -288,7 +341,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((msg) => (
+                {displayedMessages.map((msg) => (
                   <div key={msg.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-4">
                       <h4 className="font-bold text-gray-900 text-lg">{msg.senderName}</h4>
@@ -338,7 +391,7 @@ export default function Dashboard() {
                   {copied ? 'Copied!' : 'Copy Link'}
                 </button>
                 <Link
-                  to={`/${username || currentUser?.uid}`}
+                  to={selectedShirtId === 'default' ? `/${username || currentUser?.uid}` : `/${username || currentUser?.uid}/${selectedShirtId}`}
                   target="_blank"
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
                 >
@@ -498,6 +551,42 @@ export default function Dashboard() {
           )}
         </button>
       </div>
+
+      {isCreatingShirt && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-900">Create New Shirt</h3>
+              <button 
+                onClick={() => setIsCreatingShirt(false)}
+                className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleCreateShirt} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Shirt Name</label>
+                <input
+                  type="text"
+                  required
+                  maxLength={40}
+                  value={newShirtName}
+                  onChange={(e) => setNewShirtName(e.target.value)}
+                  className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="e.g. Work Friends, Family"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-primary text-white py-3 rounded-md font-bold hover:bg-primary/90 transition-colors"
+              >
+                Create Shirt
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
